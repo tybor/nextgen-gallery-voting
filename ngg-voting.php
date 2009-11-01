@@ -2,7 +2,7 @@
 /*
 Plugin Name: NextGEN Gallery Voting
 Description: This plugin allows users to add user voting to NextGEN Gallery Images 
-Version: 0.1
+Version: 1.0
 Author: Shaun Alberts
 Author URI: mailto:shaunalberts@gmail.com
 */
