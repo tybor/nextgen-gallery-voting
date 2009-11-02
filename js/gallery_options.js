@@ -76,5 +76,49 @@ jQuery(function() {
 						return false;
 				});
 				
+				jQuery("a.nggv_mote_results_image").click(function() { //button click to open more detail on the voting
+						var pid = parseInt(this.id.substr(24));
+						tb_show("", "#TB_inline?width=640&height=300&inlineId=nggvShowList&modal=true", false); //thick box seems to be included, so lets use it :)
+						
+						jQuery.get(nggv_more_url, 'pid='+pid, function(data, status) {
+								if(status == 'success') {
+									var start = data.indexOf("<!--#NGGV START AJAX RESPONSE#-->") + 33; //find the start of the outputting by the ajax url (stupid wordpress and poor buffering options blah blah)
+									eval(data.substr(start)); //the array of voters gets echoed out at the ajax url
+									if(nggv_votes_list.length > 0) {
+										//todo, paginate results (pseudo even, with hidden divs etc)?
+										var bgcol;
+										var html = '<table style="width:100%;">';
+										html += '<thead>';
+										html += '<tr>';
+										html += '<td><strong>Date</strong></td>';
+										html += '<td><strong>Vote</strong></td>';
+										html += '<td><strong>User Name</strong><br ><em>(if logged in)</em></td>';
+										html += '<td><strong>IP</strong></td>';
+										html += '</tr>';
+										html += '</thead>';
+										html += '<tbody>';
+										for(i=0; i<nggv_votes_list.length; i++) {
+											bgcol = i % 2 == 0 ? "" : "#DFDFDF";
+											html += '<tr style="background-color: '+bgcol+'">';
+											html += '<td>'+nggv_votes_list[i][1]+'</td>';
+											html += '<td>'+(Math.round(nggv_votes_list[i][0]) / 10)+'</td>';
+											html += '<td>'+nggv_votes_list[i][3][1]+'</td>';
+											html += '<td>'+nggv_votes_list[i][2]+'</td>';
+											html += '</tr>';
+										}
+										html += '</tbody>';
+										html += '</table>';
+										
+										jQuery("div#nggvShowList_content").html(html);
+									}else{
+										jQuery("div#nggvShowList_content").html("No votes yet for this image");
+									}
+								}else{
+									jQuery("div#nggvShowList_content").html("There was a problem retrieving the list of votes, please try again in a momement.");
+								}
+						});
+						return false; //cancel click
+				});
+				
 		});
 });

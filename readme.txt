@@ -3,19 +3,35 @@ Contributors: shauno
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.8
 Tested up to: 2.8.5
-Stable tag: 1.0
+Stable tag: 1.1
 
-This plugin adds the ability for users to vote on NextGEN Galleries.  A few basic options give you the ability to limit who can vote on what.
+This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
 == Description ==
 
-**Please note**
-There currently is a problem with the administration panel if you are using Internet Explorer.
-Please use Firefox to admin your blog until this bug is squashed
+This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
-This plugin adds the ability for users to vote on NextGEN Galleries.  A few basic options give you the ability to limit who can vote on what.
+NGG Voting was inspired by a request from [Troy Schlegel of Schlegel Photography](http://www.schlegelphotography.com/).  Please read the FAQ for more info on how it works.
 
-NGG Voting was inspired by a request from [Troy Schlegel of Schlegel Photography](http://www.schlegelphotography.com/).  Currently it only allows voting on galleries, but I am considering adding the option to vote on individual images if the repsonse shows a need for it (and the NextGEN code allows for it).
+
+== Frequently Asked Questions ==
+
+= In a nutshell, what is this? =
+This plugin adds options that can allow your users to vote on (more like rate) your Galleries and Images. There are options to limit which Gallery/Image to allow voting on, if the user needs to be registered and logged in, if they can vote more that once, and if they can see the current results.
+
+= How do I add the voting form? =
+For Galleries it's easy.  You just need to enable voting on the gallery, and the voting form will automatically be appended to the gallery.  There is some basic styling, but the markp has got some classes and ids that you should easily be able to hook into with your own stylesheets to make suit your blog.
+
+= Ok, and how do I make the voting form appear for images? =
+For images there's an extra step.  First you still need to enable voing on the specific images you want.  Then you need to add a tag to the gallery file of NextGEN.  I'm going to use NextGEN version 1.3.6 to as the example, but it should be pretty much the same for all 'newish' versions:
+Between line 38 and line 50 in `/nextgen-gallery/view/gallery.php` is the loop that shows each image in a specific gallery.  You need to add the following tag anywhere in that loop: `<?php echo nggv_imageVoteForm($image->pid); ?>`.
+That will output the vote form where you put it.  Personally I like to place it on a new line after the close `<a>` tag (new line created 45)
+
+= Ew, that looks hideous =
+Alas, it is true.  I have a pretty limited eye for design and layout.  But in the same way as the gallery voting form, there is plenty of place for you to work your CSS magic and make the voting forms look like you want.
+
+= Where are the results =
+Under the Gallery or Image options, the current average vote show along with how many votes have been cast.  Click on the number of votes cast to show more info on those votes.
 
 == Installation ==
 
@@ -25,6 +41,10 @@ NGG Voting was inspired by a request from [Troy Schlegel of Schlegel Photography
 
 
 == Changelog ==
+
+= 1.1 =
+* Added voting to images
+* Fixed bug that broke the admin layout in Internet Explorer
 
 = 1.0 =
 * Initial Release

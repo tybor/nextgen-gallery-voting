@@ -386,62 +386,29 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 							nggv_votes_list[nggv_votes_list.length-1][3][0] = '".$val->user_id."';
 							nggv_votes_list[nggv_votes_list.length-1][3][1] = '".$user_info->user_login."';
 						";
-						
 					}
+				}else if($_GET["pid"]){
+					$results = nggv_getImageVotingResults($_GET["pid"]);
+					
+					echo "var nggv_votes_list = [];";
+					foreach ((array)$results["list"] as $key=>$val) {
+						$user_info = $val->user_id ? get_userdata($val->user_id) : array();
+						echo "
+							nggv_votes_list[nggv_votes_list.length] = [];
+							nggv_votes_list[nggv_votes_list.length-1][0] = '".$val->vote."';
+							nggv_votes_list[nggv_votes_list.length-1][1] = '".$val->dateadded."';
+							nggv_votes_list[nggv_votes_list.length-1][2] = '".$val->ip."';
+							nggv_votes_list[nggv_votes_list.length-1][3] = [];
+							nggv_votes_list[nggv_votes_list.length-1][3][0] = '".$val->user_id."';
+							nggv_votes_list[nggv_votes_list.length-1][3][1] = '".$user_info->user_login."';
+						";
+					}					
 				}else{
 					//error num?
 				}
 				
 				exit;
 			}
-		}
-		
-		add_filter('ngg_manage_gallery_columns', 'nggv_add_vote_options');
-		/**
-		 * Add the voting options to a gallery, using some sneaky javascript
-		 * @param object $list The list of gallery fields passed from the filter
-		 * @author Shaun <shaunalberts@gmail.com>
-		 * @return object $list The 1st param passed is returned unaltered.  We only use this hook to inject some javasctipt into the page
-		 */
-		function nggv_add_vote_options($list) {
-			global $wpdb, $nggv_scripted;
-			
-			if(!$nggv_scripted) { //its a hack, so just check that its only called once :)
-				$nggv_scripted = true;
-				$options = nggv_getVotingOptions($_GET["gid"]);
-				$results = nggv_getVotingResults($_GET["gid"], array("avg"=>true, "num"=>true));
-				
-				$uri = $_SERVER["REQUEST_URI"];
-				$info = parse_url($uri);
-				$dirName = plugin_basename(dirname(__FILE__));
-				$popup = $info["path"]."?page=".$dirName."/".basename(__FILE__)."&action=get-votes-list";
-				
-				echo "<script>
-				var nggv_gid = parseInt(".$_GET["gid"].");
-				var nggv_enable = parseInt(".$options->enable.");
-				var nggv_login = parseInt(".$options->force_login.");
-				var nggv_once = parseInt(".$options->force_once.");
-				var user_results = parseInt(".$options->user_results.");
-				var nggv_avg = Math.round(".($results["avg"] ? $results["avg"] : 0).") / 10;
-				var nggv_num_votes = parseInt(".($results["number"] ? $results["number"] : 0).");
-				
-				var nggv_more_url = '".$popup."';
-				</script>";
-				wp_enqueue_script('newscript', WP_PLUGIN_URL . '/nextgen-gallery-voting/js/gallery_options.js', array('jquery'), false, true);
-				
-				echo '<div id="nggvShowList" style="display:none;">';
-				echo '<span style="float:right;" width: 100px; height: 40px; border:>';
-				echo '<a href="#" id="nggv_more_results_close">Close Window</a>';
-				echo '</span>';
-				echo '<div style="clear:both;"></div>';
-				
-				echo '<div id="nggvShowList_content">';
-				echo '<img src="'.WP_PLUGIN_URL."/".$dirName."/images/loading.gif".'" />';
-				echo '</div>';
-				echo '</div>';
-			}
-			
-			return $list;
 		}
 		
 		add_action('ngg_update_gallery', 'nggv_save_gallery_options', 10, 2);
@@ -500,23 +467,61 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		add_action("ngg_manage_gallery_columns", "nggv_add_image_vote_options_field");
 		/**
 		 * Add a custom field to the images field list.  This give us a place to add the voting options for each image with nggv_add_image_vote_options_field()
+		 * Also enqueues a script that will add the gallery voting options with js (sneaky, but has to be done)
 		 * @param array $gallery_columns The array of current fields
 		 * @author Shaun <shaun@worldwidecreative.co.za>
 		 * @return array $gallery_columns with an added field
 		 */
 		function nggv_add_image_vote_options_field($gallery_columns) {
+			wp_enqueue_script('nggc_gallery_options', WP_PLUGIN_URL . '/nextgen-gallery-voting/js/gallery_options.js', array('jquery'), false, true);
 			$gallery_columns["nggv_image_vote_options"] = "Image Voting Options";
 			return $gallery_columns;
 		}
 		
 		add_action("ngg_manage_gallery_custom_column", "nggv_add_image_voting_options", 10 ,2);
 		/**
-		 * Add the voing options to each image
+		 * Add the voing options to the gallery (sneaky js) and each image
 		 * @param string $gallery_column_key The key value of the 'custom' fields added by nggv_add_image_vote_options_field()
 		 * @author Shaun <shaun@worldwidecreative.co.za>
 		 * @return void
 		 */
 		function nggv_add_image_voting_options($gallery_column_key, $pid) {
+			global $nggv_scripted;
+			
+			if(!$nggv_scripted) { //its a hack, so just check that its only called once :)
+				$nggv_scripted = true;
+				$options = nggv_getVotingOptions($_GET["gid"]);
+				$results = nggv_getVotingResults($_GET["gid"], array("avg"=>true, "num"=>true));
+				
+				$uri = $_SERVER["REQUEST_URI"];
+				$info = parse_url($uri);
+				$dirName = plugin_basename(dirname(__FILE__));
+				$popup = $info["path"]."?page=".$dirName."/".basename(__FILE__)."&action=get-votes-list";
+				
+				echo "<script>
+				var nggv_gid = parseInt(".$_GET["gid"].");
+				var nggv_enable = parseInt(".$options->enable.");
+				var nggv_login = parseInt(".$options->force_login.");
+				var nggv_once = parseInt(".$options->force_once.");
+				var user_results = parseInt(".$options->user_results.");
+				var nggv_avg = Math.round(".($results["avg"] ? $results["avg"] : 0).") / 10;
+				var nggv_num_votes = parseInt(".($results["number"] ? $results["number"] : 0).");
+				
+				var nggv_more_url = '".$popup."';
+				</script>";
+				
+				echo '<div id="nggvShowList" style="display:none;">';
+				echo '<span style="float:right;" width: 100px; height: 40px; border:>';
+				echo '<a href="#" id="nggv_more_results_close">Close Window</a>';
+				echo '</span>';
+				echo '<div style="clear:both;"></div>';
+				
+				echo '<div id="nggvShowList_content">';
+				echo '<img src="'.WP_PLUGIN_URL."/".$dirName."/images/loading.gif".'" />';
+				echo '</div>';
+				echo '</div>';
+			}
+
 			if($gallery_column_key == "nggv_image_vote_options") {
 				$opts = nggv_getImageVotingOptions($pid);
 				echo "<table width='100%'";
@@ -525,6 +530,9 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				echo "<tr><td width='1px'><input type='checkbox' name='nggv_image[".$pid."][force_once]' value=1 ".($opts->force_once ? "checked" : "")." /></td><td>Only allow 1 vote per person</td></tr>";
 				echo "<tr><td width='1px'><input type='checkbox' name='nggv_image[".$pid."][user_results]' value=1 ".($opts->user_results ? "checked" : "")." /></td><td>Allow users to see results</td></tr>";
 				echo "</table>";
+				$results = nggv_getImageVotingResults($pid, array("avg"=>true, "num"=>true));
+				//str = nggv_avg+" / 10 <a href='#' id='nggv_more_results'>("+nggv_num_votes+" votes cast)</a>";
+				echo "Current Avg: ".round(($results["avg"] / 10), 1)." / 10 <a href='' class='nggv_mote_results_image' id='nggv_more_results_image_".$pid."'>(".($results["number"] ? $results["number"] : "0")." votes cast)</a>";
 			}
 		}
 	//}
