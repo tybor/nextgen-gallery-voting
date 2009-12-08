@@ -14,6 +14,11 @@ jQuery(function() {
 				str += "<input type='checkbox' name='nggv[force_login]' value=1 "+(nggv_login ? "checked" : "")+" /> Only allow logged in users to vote<br />";
 				str += "<input type='checkbox' name='nggv[force_once]' value=1 "+(nggv_once ? "checked" : "")+" /> Only allow 1 vote per person (IP or userid is used to stop multiple)<br />";
 				str += "<input type='checkbox' name='nggv[user_results]' value=1 "+(user_results ? "checked" : "")+" /> Allow users to see results<br />";
+				str += "Rating Type: <select name='nggv[voting_type]'>";
+				str += "<option value='1' "+(voting_type == 1 ? "selected" : "")+">Drop Down</option>";
+				str += "<option value='2' "+(voting_type == 2 ? "selected" : "")+">Star Rating</option>";
+				str += "</select>";
+				
 				cell.innerHTML = str;
 
 				row = this.insertRow(this.rows.length);
@@ -42,7 +47,7 @@ jQuery(function() {
 										html += '<thead>';
 										html += '<tr>';
 										html += '<td><strong>Date</strong></td>';
-										html += '<td><strong>Vote</strong></td>';
+										html += '<td><strong>Vote</strong><br /><em>(out 10)</em></td>';
 										html += '<td><strong>User Name</strong><br ><em>(if logged in)</em></td>';
 										html += '<td><strong>IP</strong></td>';
 										html += '</tr>';
@@ -91,7 +96,7 @@ jQuery(function() {
 										html += '<thead>';
 										html += '<tr>';
 										html += '<td><strong>Date</strong></td>';
-										html += '<td><strong>Vote</strong></td>';
+										html += '<td><strong>Vote</strong><br /><em>(out 10)</em></td>';
 										html += '<td><strong>User Name</strong><br ><em>(if logged in)</em></td>';
 										html += '<td><strong>IP</strong></td>';
 										html += '</tr>';

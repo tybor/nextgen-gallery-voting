@@ -2,7 +2,7 @@
 /*
 Plugin Name: NextGEN Gallery Voting
 Description: This plugin allows users to add user voting to NextGEN Gallery Images 
-Version: 1.1
+Version: 1.2
 Author: Shaun Alberts
 Author URI: mailto:shaunalberts@gmail.com
 */
@@ -50,7 +50,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		function nggv_getImageVotingOptions($pid) {
 			global $wpdb;
 			$opts = $wpdb->get_row("SELECT * FROM ".$wpdb->prefix."nggv_settings WHERE pid = '".$wpdb->escape($pid)."'");
-			return $opts ? $opts : array();			
+			return is_numeric($pid) && $opts->pid == $pid ? $opts : array();			
 		}
 		
 		/**
@@ -362,7 +362,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 	//}
 	
 	// admin function {
-		/* No need for admin menu, just something I normally have in my WordPress plugin template :)*/
+		/* No need for admin menu, just something I normally have in my WordPress plugin template :)
 		add_action('admin_menu', 'nggv_adminMenu');
 		function nggv_adminMenu() {
 			add_menu_page('NGG Voting', 'NGG Voting', 8, __FILE__, 'nggv_admin_options');
@@ -410,6 +410,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				exit;
 			}
 		}
+		*/
 		
 		add_action('ngg_update_gallery', 'nggv_save_gallery_options', 10, 2);
 		/**
@@ -435,12 +436,12 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				$login = $post["nggv"]["force_login"] ? "1" : "0";
 				$once = $post["nggv"]["force_once"] ? "1" : "0";
 				$user_results = $post["nggv"]["user_results"] ? "1" : "0";
-				
+				$voting_type = is_numeric($post["nggv"]["voting_type"]) ? $post["nggv"]["voting_type"] : 1;
 				
 				if(nggv_getVotingOptions($gid)) {
-					$wpdb->query("UPDATE ".$wpdb->prefix."nggv_settings SET force_login = '".$login."', force_once = '".$once."', user_results = '".$user_results."', enable = '".$enable."' WHERE gid = '".$wpdb->escape($gid)."'");
+					$wpdb->query("UPDATE ".$wpdb->prefix."nggv_settings SET force_login = '".$login."', force_once = '".$once."', user_results = '".$user_results."', enable = '".$enable."', voting_type = '".$voting_type."' WHERE gid = '".$wpdb->escape($gid)."'");
 				}else{
-					$wpdb->query("INSERT INTO ".$wpdb->prefix."nggv_settings (id, gid, enable, force_login, force_once, user_results) VALUES (null, '".$wpdb->escape($gid)."', '".$enable."', '".$login."', '".$once."', '".$user_results."')");
+					$wpdb->query("INSERT INTO ".$wpdb->prefix."nggv_settings (id, gid, enable, force_login, force_once, user_results, voting_type) VALUES (null, '".$wpdb->escape($gid)."', '".$enable."', '".$login."', '".$once."', '".$user_results."', '".$voting_type."')");
 				}
 			}
 			
@@ -450,11 +451,12 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					$login = $wpdb->escape($val["force_login"]) ? "1" : "0";
 					$once = $wpdb->escape($val["force_once"]) ? "1" : "0";
 					$user_results = $wpdb->escape($val["user_results"]) ? "1" : "0";
+					$voting_type = is_numeric($val["voting_type"]) ? $val["voting_type"] : 1;
 
 					if(nggv_getImageVotingOptions($pid)) {
-						$wpdb->query("UPDATE ".$wpdb->prefix."nggv_settings SET force_login = '".$login."', force_once = '".$once."', user_results = '".$user_results."', enable = '".$enable."' WHERE pid = '".$wpdb->escape($pid)."'");
+						$wpdb->query("UPDATE ".$wpdb->prefix."nggv_settings SET force_login = '".$login."', force_once = '".$once."', user_results = '".$user_results."', enable = '".$enable."', voting_type = '".$voting_type."' WHERE pid = '".$wpdb->escape($pid)."'");
 					}else{
-						$wpdb->query("INSERT INTO ".$wpdb->prefix."nggv_settings (id, pid, enable, force_login, force_once, user_results) VALUES (null, '".$wpdb->escape($pid)."', '".$enable."', '".$login."', '".$once."', '".$user_results."')");
+						$wpdb->query("INSERT INTO ".$wpdb->prefix."nggv_settings (id, pid, enable, force_login, force_once, user_results, voting_type) VALUES (null, '".$wpdb->escape($pid)."', '".$enable."', '".$login."', '".$once."', '".$user_results."', '".$voting_type."')");
 					}
 				}
 			}
@@ -504,12 +506,14 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				var nggv_login = parseInt(".$options->force_login.");
 				var nggv_once = parseInt(".$options->force_once.");
 				var user_results = parseInt(".$options->user_results.");
+				var voting_type = parseInt(".$options->voting_type.");
 				var nggv_avg = Math.round(".($results["avg"] ? $results["avg"] : 0).") / 10;
 				var nggv_num_votes = parseInt(".($results["number"] ? $results["number"] : 0).");
 				
 				var nggv_more_url = '".$popup."';
 				</script>";
 				
+				//the popup window for results
 				echo '<div id="nggvShowList" style="display:none;">';
 				echo '<span style="float:right;" width: 100px; height: 40px; border:>';
 				echo '<a href="#" id="nggv_more_results_close">Close Window</a>';
@@ -529,6 +533,15 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				echo "<tr><td width='1px'><input type='checkbox' name='nggv_image[".$pid."][force_login]' value=1 ".($opts->force_login ? "checked" : "")." /></td><td>Only allow logged in users</td></tr>";
 				echo "<tr><td width='1px'><input type='checkbox' name='nggv_image[".$pid."][force_once]' value=1 ".($opts->force_once ? "checked" : "")." /></td><td>Only allow 1 vote per person</td></tr>";
 				echo "<tr><td width='1px'><input type='checkbox' name='nggv_image[".$pid."][user_results]' value=1 ".($opts->user_results ? "checked" : "")." /></td><td>Allow users to see results</td></tr>";
+				
+				echo "<tr><td colspan=2>";
+				echo "Rating Type: <select name='nggv_image[".$pid."][voting_type]'>";
+				echo "<option value='1' ".($opts->voting_type == 1 || !$opts->voting_type ? "selected" : "").">Drop Down</option>";
+				echo "<option value='2' ".($opts->voting_type == 2 ? "selected" : "").">Star Rating</option>";
+				echo "</select>";
+				echo "</td></tr>";
+
+				
 				echo "</table>";
 				$results = nggv_getImageVotingResults($pid, array("avg"=>true, "num"=>true));
 				//str = nggv_avg+" / 10 <a href='#' id='nggv_more_results'>("+nggv_num_votes+" votes cast)</a>";
@@ -564,8 +577,27 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			
 			$out = "";
 			
-			if($_POST && !$_POST["nggv"]["vote_pid_id"]) {
+			if($_POST && !$_POST["nggv"]["vote_pid_id"]) { //select box voting
 				if(($msg = nggv_saveVote(array("gid"=>$gid, "vote"=>$_POST["nggv"]["vote"]))) === true) {
+					$saved = true;
+				}else{
+					$out .= '<div class="nggv-error">';
+					if($msg == "VOTING NOT ENABLED") {
+						$out .= "This gallery has not turned on voting.";
+					}else if($msg == "NOT LOGGED IN") {
+						$out .= "You need to be logged in to vote on this gallery.";
+					}else if($msg == "USER HAS VOTED") {
+						$out .= "You have already voted on this gallery.";
+					}else if($msg == "IP HAS VOTED") {
+						$out .= "This IP has already voted on this gallery.";
+					}else{
+						$out .= "There was a problem saving your vote, please try again in a few moments.";
+					}
+					$out .= '</div>';
+					//maybe return $out here?  user really should only get here if they are 'hacking' the dom anyway?
+				}
+			}else if($_GET["gid"] && $_GET["r"]) { //star rating, js disabled
+				if(($msg = nggv_saveVote(array("gid"=>$gid, "vote"=>$_GET["r"]))) === true) {
 					$saved = true;
 				}else{
 					$out .= '<div class="nggv-error">';
@@ -585,29 +617,54 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 			}
 			
+			$options = nggv_getVotingOptions($gid);
+			
 			if((($canVote = nggv_canVote($gid)) === true) && !$saved) { //they can vote, show the form
 				/* dev note.  you can set any values from 0-100 (the api will only allow this range) */
-				$out .= '<div class="nggv_container">';
-				$out .= '<form method="post" action="">';
-				$out .= '<label forid="nggv_rating">Rate this gallery:<label>';
-				$out .= '<select id="nggv_rating" name="nggv[vote]">';
-				$out .= '<option value="0">0</option>';
-				$out .= '<option value="10">1</option>';
-				$out .= '<option value="20">2</option>';
-				$out .= '<option value="30">3</option>';
-				$out .= '<option value="40">4</option>';
-				$out .= '<option value="50">5</option>';
-				$out .= '<option value="60">6</option>';
-				$out .= '<option value="70">7</option>';
-				$out .= '<option value="80">8</option>';
-				$out .= '<option value="90">9</option>';
-				$out .= '<option value="100">10</option>';
-				$out .= '</select>';
-				$out .= '<input type="submit" value="Rate" />';
-				$out .= '</form>';
-				$out .= '</div>';
+				
+				$url = $_SERVER["REQUEST_URI"];
+				$url .= strpos($url, "?") === false ? "?" : substr($url, -1) == "&" ? "" : "&"; //make sure the url ends in "?" or "&" correctly
+				//todo, try not duplicate the GET[gid] and GET[r] if clicked 2x
+				
+				if($options->voting_type == 2) { //star
+					$results = nggv_getVotingResults($gid, array("avg"=>true));
+					$out .= '<link rel="stylesheet" href="'.WP_PLUGIN_URL.'/nextgen-gallery-voting/css/star_rating.css" type="text/css" media="screen" />';
+					$out .= '<div class="nggv_container">';
+					$out .= '<span class="inline-rating">';
+					$out .= '<ul class="star-rating">';
+					if($options->user_results) { //user can see curent rating
+						$out .= '<li class="current-rating" style="width:'.round($results["avg"]).'%;">Currently '.round($results["avg"] / 20, 1).'/5 Stars.</li>';
+					}
+					$out .= '<li><a href="'.$url.'gid='.$gid.'&r=20" title="1 star out of 5" class="one-star">1</a></li>';
+					$out .= '<li><a href="'.$url.'gid='.$gid.'&r=40" title="2 stars out of 5" class="two-stars">2</a></li>';
+					$out .= '<li><a href="'.$url.'gid='.$gid.'&r=60" title="3 stars out of 5" class="three-stars">3</a></li>';
+					$out .= '<li><a href="'.$url.'gid='.$gid.'&r=80" title="4 stars out of 5" class="four-stars">4</a></li>';
+					$out .= '<li><a href="'.$url.'gid='.$gid.'&r=100" title="5 stars out of 5" class="five-stars">5</a></li>';
+					$out .= '</ul>';
+					$out .= '</span>';
+					$out .= '</div>';
+				}else{ //it will be 1, but why not use a catch all :) (drop down)
+					$out .= '<div class="nggv_container">';
+					$out .= '<form method="post" action="">';
+					$out .= '<label forid="nggv_rating">Rate this gallery:<label>';
+					$out .= '<select id="nggv_rating" name="nggv[vote]">';
+					$out .= '<option value="0">0</option>';
+					$out .= '<option value="10">1</option>';
+					$out .= '<option value="20">2</option>';
+					$out .= '<option value="30">3</option>';
+					$out .= '<option value="40">4</option>';
+					$out .= '<option value="50">5</option>';
+					$out .= '<option value="60">6</option>';
+					$out .= '<option value="70">7</option>';
+					$out .= '<option value="80">8</option>';
+					$out .= '<option value="90">9</option>';
+					$out .= '<option value="100">10</option>';
+					$out .= '</select>';
+					$out .= '<input type="submit" value="Rate" />';
+					$out .= '</form>';
+					$out .= '</div>';
+				}
 			}else{ //ok, they cant vote.  what next?
-				$options = nggv_getVotingOptions($gid);
 				if($options->enable) { //votings enabled for this gallery, lets find out more...
 					if($canVote === "NOT LOGGED IN") { //the api wants them to login to vote
 						$out .= '<div class="nggv_container">';
@@ -616,9 +673,15 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					}else if($canVote === "USER HAS VOTED" || $canVote === "IP HAS VOTED" || $canVote === true) { //api tells us they have voted, can they see results? (canVote will be true if they have just voted successfully)
 						if($options->user_results) { //yes! show it
 							$results = nggv_getVotingResults($gid, array("avg"=>true));
-							$out .= '<div class="nggv_container">';
-							$out .= 'Current Average: '.round(($results["avg"] / 10), 1)." / 10";
-							$out .= '</div>';
+							if($options->voting_type == 2) {
+								$out .= '<div class="nggv_container">';
+								$out .= 'Current Average: '.round(($results["avg"] / 20), 1)." / 5 stars";
+								$out .= '</div>';								
+							}else{
+								$out .= '<div class="nggv_container">';
+								$out .= 'Current Average: '.round(($results["avg"] / 10), 1)." / 10";
+								$out .= '</div>';
+							}
 						}else{ //nope, but thanks for trying
 							$out .= '<div class="nggv_container">';
 							$out .= 'Thank you for casting your vote!';
@@ -658,32 +721,75 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					$out .= '</div>';
 					//maybe return $out here?  user really should only get here if they are 'hacking' the dom anyway?
 				}
+			}else if($_GET["pid"] && $_GET["r"] && $pid == $_GET["pid"]) { //star rating, js disabled
+				if(($msg = nggv_saveVoteImage(array("pid"=>$pid, "vote"=>$_GET["r"]))) === true) {
+					$saved = true;
+				}else{
+					$out .= '<div class="nggv-error">';
+					if($msg == "VOTING NOT ENABLED") {
+						$out .= "Voting is not enabled for this image";
+					}else if($msg == "NOT LOGGED IN") {
+						$out .= "You need to be logged in to vote on this image.";
+					}else if($msg == "USER HAS VOTED") {
+						$out .= "You have already voted on this image.";
+					}else if($msg == "IP HAS VOTED") {
+						$out .= "This IP has already voted on this image.";
+					}else{
+						$out .= "There was a problem saving your vote, please try again in a few moments.";
+					}
+					$out .= '</div>';
+					//maybe return $out here?  user really should only get here if they are 'hacking' the dom anyway?
+				}
 			}
 			
+			$options = nggv_getImageVotingOptions($pid);
+			
 			if((($canVote = nggv_canVoteImage($pid)) === true) && !$saved) { //they can vote, show the form
-				/* dev note.  you can set any values from 0-100 (the api will only allow this range) */
-				$out .= '<div class="nggv-image-vote-container">';
-				$out .= '<form method="post" action="">';
-				$out .= '<label forid="nggv_rating_image_'.$pid.'">Rate this image:<label>';
-				$out .= '<input type="hidden" name="nggv[vote_pid_id]" value="'.$pid.'" />';
-				$out .= '<select id="nggv_rating_image_'.$pid.'" name="nggv[vote_image]">';
-				$out .= '<option value="0">0</option>';
-				$out .= '<option value="10">1</option>';
-				$out .= '<option value="20">2</option>';
-				$out .= '<option value="30">3</option>';
-				$out .= '<option value="40">4</option>';
-				$out .= '<option value="50">5</option>';
-				$out .= '<option value="60">6</option>';
-				$out .= '<option value="70">7</option>';
-				$out .= '<option value="80">8</option>';
-				$out .= '<option value="90">9</option>';
-				$out .= '<option value="100">10</option>';
-				$out .= '</select>';
-				$out .= '<input type="submit" value="Rate" />';
-				$out .= '</form>';
-				$out .= '</div>';
+				$url = $_SERVER["REQUEST_URI"];
+				$url .= strpos($url, "?") === false ? "?" : substr($url, -1) == "&" ? "" : "&"; //make sure the url ends in "?" or "&" correctly
+				//todo, try not duplicate the GET[gid] and GET[r] if clicked 2x
+				
+				if($options->voting_type == 2) { //star
+					$results = nggv_getImageVotingResults($pid, array("avg"=>true));
+					$out .= '<link rel="stylesheet" href="'.WP_PLUGIN_URL.'/nextgen-gallery-voting/css/star_rating.css" type="text/css" media="screen" />';
+					$out .= '<div class="nggv_container">';
+					$out .= '<span class="inline-rating">';
+					$out .= '<ul class="star-rating">';
+					if($options->user_results) { //user can see curent rating
+						$out .= '<li class="current-rating" style="width:'.round($results["avg"]).'%;">Currently '.round($results["avg"] / 20, 1).'/5 Stars.</li>';
+					}
+					$out .= '<li><a href="'.$url.'pid='.$pid.'&r=20" title="1 star out of 5" class="one-star">1</a></li>';
+					$out .= '<li><a href="'.$url.'pid='.$pid.'&r=40" title="2 stars out of 5" class="two-stars">2</a></li>';
+					$out .= '<li><a href="'.$url.'pid='.$pid.'&r=60" title="3 stars out of 5" class="three-stars">3</a></li>';
+					$out .= '<li><a href="'.$url.'pid='.$pid.'&r=80" title="4 stars out of 5" class="four-stars">4</a></li>';
+					$out .= '<li><a href="'.$url.'pid='.$pid.'&r=100" title="5 stars out of 5" class="five-stars">5</a></li>';
+					$out .= '</ul>';
+					$out .= '</span>';
+					$out .= '</div>';
+				}else{
+					/* dev note.  you can set any values from 0-100 (the api will only allow this range) */
+					$out .= '<div class="nggv-image-vote-container">';
+					$out .= '<form method="post" action="">';
+					$out .= '<label forid="nggv_rating_image_'.$pid.'">Rate this image:<label>';
+					$out .= '<input type="hidden" name="nggv[vote_pid_id]" value="'.$pid.'" />';
+					$out .= '<select id="nggv_rating_image_'.$pid.'" name="nggv[vote_image]">';
+					$out .= '<option value="0">0</option>';
+					$out .= '<option value="10">1</option>';
+					$out .= '<option value="20">2</option>';
+					$out .= '<option value="30">3</option>';
+					$out .= '<option value="40">4</option>';
+					$out .= '<option value="50">5</option>';
+					$out .= '<option value="60">6</option>';
+					$out .= '<option value="70">7</option>';
+					$out .= '<option value="80">8</option>';
+					$out .= '<option value="90">9</option>';
+					$out .= '<option value="100">10</option>';
+					$out .= '</select>';
+					$out .= '<input type="submit" value="Rate" />';
+					$out .= '</form>';
+					$out .= '</div>';
+				}
 			}else{ //ok, they cant vote.  what next?
-				$options = nggv_getImageVotingOptions($pid);
 				if($options->enable) { //votings enabled for this gallery, lets find out more...
 					if($canVote === "NOT LOGGED IN") { //the api wants them to login to vote
 						$out .= '<div class="nggv-image-vote-container">';
@@ -692,9 +798,15 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					}else if($canVote === "USER HAS VOTED" || $canVote === "IP HAS VOTED" || $canVote === true) { //api tells us they have voted, can they see results? (canVote will be true if they have just voted successfully)
 						if($options->user_results) { //yes! show it
 							$results = nggv_getImageVotingResults($pid, array("avg"=>true));
-							$out .= '<div class="nggv-image-vote-container">';
-							$out .= 'Current Average: '.round(($results["avg"] / 10), 1)." / 10";
-							$out .= '</div>';
+							if($options->voting_type == 2) {
+								$out .= '<div class="nggv-image-vote-container">';
+								$out .= 'Current Average: '.round(($results["avg"] / 20), 1)." / 5 stars";
+								$out .= '</div>';								
+							}else{
+								$out .= '<div class="nggv-image-vote-container">';
+								$out .= 'Current Average: '.round(($results["avg"] / 10), 1)." / 10";
+								$out .= '</div>';
+							}
 						}else{ //nope, but thanks for trying
 							$out .= '<div class="nggv-image-vote-container">';
 							$out .= 'Thank you for casting your vote!';
@@ -728,6 +840,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				force_login TINYINT NOT NULL DEFAULT 0,
 				force_once TINYINT NOT NULL DEFAULT 0,
 				user_results TINYINT NOT NULL DEFAULT 0,
+				voting_type INT NOT NULL DEFAULT 1,
 				UNIQUE KEY id (id)
 			);";
 			require_once(ABSPATH."wp-admin/includes/upgrade.php");
