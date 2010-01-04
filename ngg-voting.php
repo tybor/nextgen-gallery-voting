@@ -4,7 +4,6 @@ Plugin Name: NextGEN Gallery Voting
 Description: This plugin allows users to add user voting to NextGEN Gallery Images 
 Version: 1.2
 Author: Shaun Alberts
-Author URI: mailto:shaunalberts@gmail.com
 */
 /*  
 Copyright 2009  Shaun Alberts  (email : shaunalberts@gmail.com)
