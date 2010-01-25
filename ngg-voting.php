@@ -2,7 +2,7 @@
 /*
 Plugin Name: NextGEN Gallery Voting
 Description: This plugin allows users to add user voting to NextGEN Gallery Images 
-Version: 1.2
+Version: 1.3
 Author: Shaun Alberts
 */
 /*  
@@ -622,7 +622,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				/* dev note.  you can set any values from 0-100 (the api will only allow this range) */
 				
 				$url = $_SERVER["REQUEST_URI"];
-				$url .= strpos($url, "?") === false ? "?" : substr($url, -1) == "&" ? "" : "&"; //make sure the url ends in "?" or "&" correctly
+				$url .= (strpos($url, "?") === false ? "?" : (substr($url, -1) == "&" ? "" : "&")); //make sure the url ends in "?" or "&" correctly
 				//todo, try not duplicate the GET[gid] and GET[r] if clicked 2x
 				
 				if($options->voting_type == 2) { //star
@@ -745,7 +745,8 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			
 			if((($canVote = nggv_canVoteImage($pid)) === true) && !$saved) { //they can vote, show the form
 				$url = $_SERVER["REQUEST_URI"];
-				$url .= strpos($url, "?") === false ? "?" : substr($url, -1) == "&" ? "" : "&"; //make sure the url ends in "?" or "&" correctly
+				
+				$url .= (strpos($url, "?") === false ? "?" : (substr($url, -1) == "&" ? "" : "&")); //make sure the url ends in "?" or "&" correctly
 				//todo, try not duplicate the GET[gid] and GET[r] if clicked 2x
 				
 				if($options->voting_type == 2) { //star

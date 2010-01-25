@@ -3,7 +3,7 @@ Contributors: shauno
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.8
 Tested up to: 2.8.5
-Stable tag: 1.2
+Stable tag: 1.3
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -41,6 +41,9 @@ Under the Gallery or Image options, the current average vote show along with how
 
 
 == Changelog ==
+
+= 1.3 =
+* Fixed a bug the directed users to a 404 if using star ratings with pretty URLs enabled
 
 = 1.2 =
 * Added the ability to choose to vote using 5 star rating
