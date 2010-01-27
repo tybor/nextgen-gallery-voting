@@ -2,10 +2,10 @@
 /*
 Plugin Name: NextGEN Gallery Voting
 Description: This plugin allows users to add user voting to NextGEN Gallery Images 
-Version: 1.3
+Version: 1.3.1
 Author: Shaun Alberts
 */
-/*  
+/*
 Copyright 2009  Shaun Alberts  (email : shaunalberts@gmail.com)
 
 This program is free software; you can redistribute it and/or modify
@@ -645,7 +645,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}else{ //it will be 1, but why not use a catch all :) (drop down)
 					$out .= '<div class="nggv_container">';
 					$out .= '<form method="post" action="">';
-					$out .= '<label forid="nggv_rating">Rate this gallery:<label>';
+					$out .= '<label forid="nggv_rating">Rate this gallery:</label>';
 					$out .= '<select id="nggv_rating" name="nggv[vote]">';
 					$out .= '<option value="0">0</option>';
 					$out .= '<option value="10">1</option>';
@@ -770,7 +770,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					/* dev note.  you can set any values from 0-100 (the api will only allow this range) */
 					$out .= '<div class="nggv-image-vote-container">';
 					$out .= '<form method="post" action="">';
-					$out .= '<label forid="nggv_rating_image_'.$pid.'">Rate this image:<label>';
+					$out .= '<label forid="nggv_rating_image_'.$pid.'">Rate this image:</label>';
 					$out .= '<input type="hidden" name="nggv[vote_pid_id]" value="'.$pid.'" />';
 					$out .= '<select id="nggv_rating_image_'.$pid.'" name="nggv[vote_image]">';
 					$out .= '<option value="0">0</option>';
