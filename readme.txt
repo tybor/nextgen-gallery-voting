@@ -43,7 +43,7 @@ Under the Gallery or Image options, the current average vote show along with how
 == Changelog ==
 
 = 1.3.1 =
-* Fixed a broken close label tag that cased some issues with the drop down voting (Thanks to Mae Paulino for pointing it out)
+* Fixed a broken close label tag that caused some issues with the drop down voting (Thanks to Mae Paulino for pointing it out)
 = 1.3 =
 * Fixed a bug the directed users to a 404 if using star ratings with pretty URLs enabled
 
