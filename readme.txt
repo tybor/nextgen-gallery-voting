@@ -3,7 +3,7 @@ Contributors: shauno
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
 Tested up to: 2.8.5
-Stable tag: 1.3.1
+Stable tag: 1.4
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -42,8 +42,12 @@ Under the Gallery or Image options, the current average vote show along with how
 
 == Changelog ==
 
+= 1.4 =
+* Added the ability to set default voting options for new Galleries and Images
+
 = 1.3.1 =
 * Fixed a broken close label tag that caused some issues with the drop down voting (Thanks to Mae Paulino for pointing it out)
+
 = 1.3 =
 * Fixed a bug the directed users to a 404 if using star ratings with pretty URLs enabled
 

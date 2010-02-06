@@ -2,11 +2,11 @@
 /*
 Plugin Name: NextGEN Gallery Voting
 Description: This plugin allows users to add user voting to NextGEN Gallery Images 
-Version: 1.3.1
+Version: 1.4
 Author: Shaun Alberts
 */
 /*
-Copyright 2009  Shaun Alberts  (email : shaunalberts@gmail.com)
+Copyright 2010  Shaun Alberts  (email : shaunalberts@gmail.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -184,7 +184,6 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 			}
 		}
-
 		
 		//gets the users actual IP even if they are behind a proxy (if the proxy is nice enough to let us know their actual IP of course)
 		/**
@@ -357,11 +356,10 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			}else{
 				return array();
 			}
-		}		
+		}
 	//}
 	
 	// admin function {
-		/* No need for admin menu, just something I normally have in my WordPress plugin template :)
 		add_action('admin_menu', 'nggv_adminMenu');
 		function nggv_adminMenu() {
 			add_menu_page('NGG Voting', 'NGG Voting', 8, __FILE__, 'nggv_admin_options');
@@ -407,9 +405,135 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 				
 				exit;
+			}else{
+				if($_POST['nggv']) {
+					//Gallery
+					if(get_option('nggv_gallery_enable') === false) { //bool false means does not exists
+						add_option('nggv_gallery_enable', ($_POST['nggv']['gallery']['enable'] ? '1' : '0'), null, 'no');
+					}else{
+						update_option('nggv_gallery_enable', ($_POST['nggv']['gallery']['enable'] ? '1' : '0'));
+					}
+					if(get_option('nggv_gallery_force_login') === false) { //bool false means does not exists
+						add_option('nggv_gallery_force_login', ($_POST['nggv']['gallery']['force_login'] ? '1' : '0'), null, 'no');
+					}else{
+						update_option('nggv_gallery_force_login', ($_POST['nggv']['gallery']['force_login'] ? '1' : '0'));
+					}
+					if(get_option('nggv_gallery_force_once') === false) { //bool false means does not exists
+						add_option('nggv_gallery_force_once', ($_POST['nggv']['gallery']['force_once'] ? '1' : '0'), null, 'no');
+					}else{
+						update_option('nggv_gallery_force_once', ($_POST['nggv']['gallery']['force_once'] ? '1' : '0'));
+					}
+					if(get_option('nggv_gallery_user_results') === false) { //bool false means does not exists
+						add_option('nggv_gallery_user_results', ($_POST['nggv']['gallery']['user_results'] ? '1' : '0'), null, 'no');
+					}else{
+						update_option('nggv_gallery_user_results', ($_POST['nggv']['gallery']['user_results'] ? '1' : '0'));
+					}
+					if(get_option('nggv_gallery_voting_type') === false) { //bool false means does not exists
+						add_option('nggv_gallery_voting_type', $_POST['nggv']['gallery']['voting_type'], null, 'no');
+					}else{
+						update_option('nggv_gallery_voting_type', $_POST['nggv']['gallery']['voting_type']);
+					}
+					
+					//Images
+					if(get_option('nggv_image_enable') === false) { //bool false means does not exists
+						add_option('nggv_image_enable', ($_POST['nggv']['image']['enable'] ? '1' : '0'), null, 'no');
+					}else{
+						update_option('nggv_image_enable', ($_POST['nggv']['image']['enable'] ? '1' : '0'));
+					}
+					if(get_option('nggv_image_force_login') === false) { //bool false means does not exists
+						add_option('nggv_image_force_login', ($_POST['nggv']['image']['force_login'] ? '1' : '0'), null, 'no');
+					}else{
+						update_option('nggv_image_force_login', ($_POST['nggv']['image']['force_login'] ? '1' : '0'));
+					}
+					if(get_option('nggv_image_force_once') === false) { //bool false means does not exists
+						add_option('nggv_image_force_once', ($_POST['nggv']['image']['force_once'] ? '1' : '0'), null, 'no');
+					}else{
+						update_option('nggv_image_force_once', ($_POST['nggv']['image']['force_once'] ? '1' : '0'));
+					}
+					if(get_option('nggv_image_user_results') === false) { //bool false means does not exists
+						add_option('nggv_image_user_results', ($_POST['nggv']['image']['user_results'] ? '1' : '0'), null, 'no');
+					}else{
+						update_option('nggv_image_user_results', ($_POST['nggv']['image']['user_results'] ? '1' : '0'));
+					}
+					if(get_option('nggv_image_voting_type') === false) { //bool false means does not exists
+						add_option('nggv_image_voting_type', $_POST['nggv']['image']['voting_type'], null, 'no');
+					}else{
+						update_option('nggv_image_voting_type', $_POST['nggv']['image']['voting_type']);
+					}
+				}
+				
+				$filepath = admin_url()."admin.php?page=".$_GET["page"];
+				?>
+				<div class="wrap">
+					<h2>Welcome to NextGEN Gallery Voting</h2>
+					<p>This plugin adds the ability for users to vote on NextGEN Galleries and Images.  If you need any help or find any bugs, please create a post at the Wordpress plugin support forum, with the tag '<a href="http://wordpress.org/tags/nextgen-gallery-voting?forum_id=10" target="_blank">nextgen-gallery-voting</a>'</p>
+				
+					<h2>Default Options</h2>
+					<p>Here you can set the default voting options for <strong>new</strong> Galleries and Images.  Setting these options will not affect any existing Galleries or Images</p>
+					<div id="poststuff">
+						<form id="" method="POST" action="<?php echo $filepath; ?>" accept-charset="utf-8" >
+							<input type="hidden" name="nggv[force]" value="1" /> <!-- this will just force _POST['nggv'] even if all checkboxes are unchecked -->
+							<div class="postbox">
+								<table class="form-table" style="width:500px;">
+									<tr>
+										<td colspan="2" style="text-align:right;"><h3>Gallery</h3></th>
+										<td style="text-align:center;"><h3>Image</h3></th>
+									</tr>
+									<tr valign="top">
+										<th style="width:280px;">Enable:</th>
+										<td style="width:60px; text-align:center;"><input type="checkbox" name="nggv[gallery][enable]" <?php echo (get_option('nggv_gallery_enable') ? 'checked="checked"' : ''); ?> /></td>
+										<td style="width:60px; text-align:center;"><input type="checkbox" name="nggv[image][enable]" <?php echo (get_option('nggv_image_enable') ? 'checked="checked"' : ''); ?> /></td>
+									</tr>
+
+									<tr valign="top">
+										<th>Only allow logged in users to vote:</th>
+										<td style="text-align:center;"><input type="checkbox" name="nggv[gallery][force_login]" <?php echo (get_option('nggv_gallery_force_login') ? 'checked="checked"' : ''); ?> /></td>
+										<td style="text-align:center;"><input type="checkbox" name="nggv[image][force_login]" <?php echo (get_option('nggv_image_force_login') ? 'checked="checked"' : ''); ?> /></td>
+									</tr>
+
+									<tr valign="top">
+										<th>Only allow 1 vote per person<br ><em>(IP or userid is used to stop multiple)</em></th>
+										<td style="text-align:center;"><input type="checkbox" name="nggv[gallery][force_once]" <?php echo (get_option('nggv_gallery_force_once') ? 'checked="checked"' : ''); ?> /></td>
+										<td style="text-align:center;"><input type="checkbox" name="nggv[image][force_once]" <?php echo (get_option('nggv_image_force_once') ? 'checked="checked"' : ''); ?> /></td>
+									</tr>
+
+									<tr valign="top">
+										<th>Allow users to see results:</th>
+										<td style="text-align:center;"><input type="checkbox" name="nggv[gallery][user_results]" <?php echo (get_option('nggv_gallery_user_results') ? 'checked="checked"' : ''); ?> /></td>
+										<td style="text-align:center;"><input type="checkbox" name="nggv[image][user_results]" <?php echo (get_option('nggv_image_user_results') ? 'checked="checked"' : ''); ?> /></td>
+									</tr>
+
+									<tr valign="top">
+										<th>Rating Type:</th>
+										<td style="text-align:center;">
+											<select name="nggv[gallery][voting_type]">
+												<option value="1" <?php echo (get_option('nggv_gallery_voting_type') == 1 ? 'selected="selected"' : ''); ?>>Drop Down</option>
+												<option value="2" <?php echo (get_option('nggv_gallery_voting_type') == 2 ? 'selected="selected"' : ''); ?>>Star Rating</option>
+											</select>
+										</td>
+										<td style="text-align:center;">
+											<select name="nggv[image][voting_type]">
+												<option value="1" <?php echo (get_option('nggv_image_voting_type') == 1 ? 'selected="selected"' : ''); ?>>Drop Down</option>
+												<option value="2" <?php echo (get_option('nggv_image_voting_type') == 2 ? 'selected="selected"' : ''); ?>>Star Rating</option>
+											</select>
+
+										</td>
+									</tr>
+
+									<tr>
+										<td colspan="2">
+											<div class="submit"><input class="button-primary" type="submit" value="Save Defaults"/>
+											</div>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</form>
+					</div>
+				</div>
+				<?php
 			}
 		}
-		*/
 		
 		add_action('ngg_update_gallery', 'nggv_save_gallery_options', 10, 2);
 		/**
@@ -424,10 +548,12 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		 *  bool (int 1/0) post["nggv_image"][image ID]["force_login"] : Only allow a user to vote once
 		 *  bool (int 1/0) post["nggv_image"][image ID]["force_once"] : Only allow a user to vote once
 		 *  bool (int 1/0) post["nggv_image"][image ID]["user_results"] : If users see results
+		 * @param bool $noReload If set to true, this function will act like an api and simply let the code execution continue after being called.
+		 *  If false (default), this funtion uses a js hack to reload the page
 		 * @author Shaun <shaunalberts@gmail.com>
 		 * @return void
 		 */
-		function nggv_save_gallery_options($gid, $post) {
+		function nggv_save_gallery_options($gid, $post, $noReload=false) {
 			global $wpdb;
 
 			if($post["nggv"]) {
@@ -460,9 +586,11 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 			}
 			
-			//gotta force a reload or the js globals declared in nggv_add_vote_options() are set to the pre-saved values, and the checkboxes are ticked incorrectly (hack hackity hack hack hack)
-			echo "<script>window.location = window.location;</script>";
-			exit;
+			if(!$noReload) {
+				//gotta force a reload or the js globals declared in nggv_add_vote_options() are set to the pre-saved values, and the checkboxes are ticked incorrectly (hack hackity hack hack hack)
+				echo "<script>window.location = window.location;</script>";
+				exit;
+			}
 		}
 		
 		add_action("ngg_manage_gallery_columns", "nggv_add_image_vote_options_field");
@@ -545,6 +673,70 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				$results = nggv_getImageVotingResults($pid, array("avg"=>true, "num"=>true));
 				//str = nggv_avg+" / 10 <a href='#' id='nggv_more_results'>("+nggv_num_votes+" votes cast)</a>";
 				echo "Current Avg: ".round(($results["avg"] / 10), 1)." / 10 <a href='' class='nggv_mote_results_image' id='nggv_more_results_image_".$pid."'>(".($results["number"] ? $results["number"] : "0")." votes cast)</a>";
+			}
+		}
+		
+		add_action("ngg_add_new_gallery_form", "nggv_new_gallery_form"); //new in ngg 1.4.0a
+		/**
+		 * Adds the default voting options for a new gallery.  Can be tweaked for the specif gallery without affecting the defaults
+		 * @author Shaun <shaun@worldwidecreative.co.za>
+		 * @return void
+		 */
+		function nggv_new_gallery_form() {
+			?>
+			<tr valign="top">
+			<th scope="row">Gallery Voting Options:<br /><em>(Pre-set from <a href="<?php echo admin_url(); ?>admin.php?page=nextgen-gallery-voting/ngg-voting.php">here</a>)</em></th> 
+			<td>
+				<input type="checkbox" name="nggv[gallery][enable]" <?php echo (get_option('nggv_gallery_enable') ? 'checked="checked"' : ''); ?> />
+				Enable<br />
+				
+				<input type="checkbox" name="nggv[gallery][force_login]" <?php echo (get_option('nggv_gallery_force_login') ? 'checked="checked"' : ''); ?> />
+				Only allow logged in users to vote<br />
+				
+				<input type="checkbox" name="nggv[gallery][force_once]" <?php echo (get_option('nggv_gallery_force_once') ? 'checked="checked"' : ''); ?> />
+				Only allow 1 vote per person <em>(IP or userid is used to stop multiple)</em><br />
+				
+				<input type="checkbox" name="nggv[gallery][user_results]" <?php echo (get_option('nggv_gallery_user_results') ? 'checked="checked"' : ''); ?> />
+				Allow users to see results
+			</td>
+			</tr>
+			<?php
+		}
+		
+		add_action("ngg_created_new_gallery", "nggv_add_new_gallery"); //new in ngg 1.4.0a
+		/**
+		 * Saves the voting options for the new gallery
+		 * @param int $gid the gallery id
+		 * @author Shaun <shaun@worldwidecreative.co.za>
+		 * @return voide
+		 */
+		function nggv_add_new_gallery($gid) {
+			if($gid) {
+				$post = array();
+				$post['nggv'] = $_POST['nggv']['gallery'];
+				nggv_save_gallery_options($gid, $post, true);
+			}
+		}
+		
+		add_action("ngg_added_new_image", "nggv_add_new_image");
+		/**
+		 * Add the image voting options for a new image (pulled from the defaaults
+		 * @param array $image the new image details
+		 * @author Shaun <shaun@worldwidecreative.co.za>
+		 * @return void
+		 */
+		function nggv_add_new_image($image) {
+			if($image['id']) {
+				$post = array();
+				$post['nggv_image'] = array();
+				$post['nggv_image'][$image['id']] = array();
+				$post['nggv_image'][$image['id']]['enable'] = get_option('nggv_image_enable');
+				$post['nggv_image'][$image['id']]['force_login'] = get_option('nggv_image_force_login');
+				$post['nggv_image'][$image['id']]['force_once'] = get_option('nggv_image_force_once');
+				$post['nggv_image'][$image['id']]['user_results'] = get_option('nggv_image_user_results');
+				$post['nggv_image'][$image['id']]['voting_type'] = get_option('nggv_image_voting_type');
+				
+				nggv_save_gallery_options($image['galleryID'], $post, true);
 			}
 		}
 	//}
@@ -818,7 +1010,6 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			
 			return $out;
 		}
-		
 	//}
 
 	//install funcs{
@@ -861,6 +1052,6 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			require_once(ABSPATH."wp-admin/includes/upgrade.php");
 			dbDelta($sql);
 		}
-	//}	
+	//}
 //}
 ?>
