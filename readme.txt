@@ -2,8 +2,8 @@
 Contributors: shauno
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
-Tested up to: 2.8.5
-Stable tag: 1.4
+Tested up to: 3.0.1
+Stable tag: 1.5
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -12,7 +12,6 @@ This plugin adds the ability for users to vote on NextGEN Galleries and Images. 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
 NGG Voting was inspired by a request from [Troy Schlegel of Schlegel Photography](http://www.schlegelphotography.com/).  Please read the FAQ for more info on how it works.
-
 
 == Frequently Asked Questions ==
 
@@ -39,8 +38,10 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Activate the plugin through the 'Plugins' menu in WordPress
 1. Go to 'Manage Gallery' in NextGEN, and select a gallery to see the new options
 
-
 == Changelog ==
+
+= 1.5 =
+* Added a new type of voting, the "Like / Dislike"
 
 = 1.4 =
 * Added the ability to set default voting options for new Galleries and Images

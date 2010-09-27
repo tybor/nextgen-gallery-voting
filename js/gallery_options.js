@@ -17,6 +17,7 @@ jQuery(function() {
 				str += "Rating Type: <select name='nggv[voting_type]'>";
 				str += "<option value='1' "+(voting_type == 1 ? "selected" : "")+">Drop Down</option>";
 				str += "<option value='2' "+(voting_type == 2 ? "selected" : "")+">Star Rating</option>";
+				str += "<option value='3' "+(voting_type == 3 ? "selected" : "")+">Like / Dislike</option>";
 				str += "</select>";
 				
 				cell.innerHTML = str;
@@ -25,11 +26,19 @@ jQuery(function() {
 				cell = row.insertCell(0);
 				cell.align = "left";
 				cell.vAlign = "top";
-				cell.innerHTML = "Current Average";
+				cell.innerHTML = "Current Votes";
 				
 				cell = row.insertCell(1);
 				cell.colSpan = 3;
-				str = nggv_avg+" / 10 <a href='#' id='nggv_more_results'>("+nggv_num_votes+" votes cast)</a>";
+				if(voting_type == 3) { //likes/dislikes
+					str = nggv_num_likes+' ';
+					str += nggv_num_likes == 1 ? 'Like, ' : 'Likes, ';
+					str += nggv_num_dislikes+' ';
+					str += nggv_num_dislikes == 1 ? 'Dislike' : 'Dislikes';
+					str += " <a href='#' id='nggv_more_results'>("+nggv_num_votes+" votes cast)</a>";
+				}else{
+					str = nggv_avg+" / 10 <a href='#' id='nggv_more_results'>("+nggv_num_votes+" votes cast)</a>";
+				}
 				
 				cell.innerHTML = str;
 				
@@ -57,7 +66,11 @@ jQuery(function() {
 											bgcol = i % 2 == 0 ? "" : "#DFDFDF";
 											html += '<tr style="background-color: '+bgcol+'">';
 											html += '<td>'+nggv_votes_list[i][1]+'</td>';
-											html += '<td>'+(Math.round(nggv_votes_list[i][0]) / 10)+'</td>';
+											if(parseInt(nggv_voting_type) == 3) {
+												html += '<td>'+(nggv_votes_list[i][0] == 100 ? 'Like' : 'Dislike')+'</td>';
+											}else{
+												html += '<td>'+(Math.round(nggv_votes_list[i][0]) / 10)+'</td>';
+											}
 											html += '<td>'+nggv_votes_list[i][3][1]+'</td>';
 											html += '<td>'+nggv_votes_list[i][2]+'</td>';
 											html += '</tr>';
@@ -106,7 +119,11 @@ jQuery(function() {
 											bgcol = i % 2 == 0 ? "" : "#DFDFDF";
 											html += '<tr style="background-color: '+bgcol+'">';
 											html += '<td>'+nggv_votes_list[i][1]+'</td>';
-											html += '<td>'+(Math.round(nggv_votes_list[i][0]) / 10)+'</td>';
+											if(parseInt(nggv_voting_type) == 3) {
+												html += '<td>'+(nggv_votes_list[i][0] == 100 ? 'Like' : 'Dislike')+'</td>';
+											}else{
+												html += '<td>'+(Math.round(nggv_votes_list[i][0]) / 10)+'</td>';
+											}
 											html += '<td>'+nggv_votes_list[i][3][1]+'</td>';
 											html += '<td>'+nggv_votes_list[i][2]+'</td>';
 											html += '</tr>';

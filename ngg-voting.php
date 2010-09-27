@@ -2,7 +2,7 @@
 /*
 Plugin Name: NextGEN Gallery Voting
 Description: This plugin allows users to add user voting to NextGEN Gallery Images 
-Version: 1.4
+Version: 1.5
 Author: Shaun Alberts
 */
 /*
@@ -308,7 +308,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		 * @author Shaun <shaunalberts@gmail.com>
 		 * @return array("avg"=>double average for gallery, "list"=>array of objects of all votes of the gallery, "number"=>integer the number of votes for the gallery)
 		 */
-		function nggv_getVotingResults($gid, $type=array("avg"=>true, "list"=>true, "number"=>true)) {
+		function nggv_getVotingResults($gid, $type=array("avg"=>true, "list"=>true, "number"=>true, "likes"=>true, "dislikes"=>true)) {
 			if(is_numeric($gid)) {
 				global $wpdb;
 				
@@ -321,8 +321,14 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				if($type["num"]) {
 					$num = $wpdb->get_row("SELECT COUNT(vote) AS num FROM ".$wpdb->prefix."nggv_votes WHERE gid = '".$wpdb->escape($gid)."' GROUP BY gid");
 				}
+				if($type["likes"]) {
+					$likes = $wpdb->get_row("SELECT COUNT(vote) AS num FROM ".$wpdb->prefix."nggv_votes WHERE gid = '".$wpdb->escape($gid)."' AND vote = 100 GROUP BY gid");
+				}
+				if($type["dislikes"]) {
+					$dislikes = $wpdb->get_row("SELECT COUNT(vote) AS num FROM ".$wpdb->prefix."nggv_votes WHERE gid = '".$wpdb->escape($gid)."' AND vote = 0 GROUP BY gid");
+				}
 				
-				return array("avg"=>$avg->avg, "list"=>$list, "number"=>$num->num);
+				return array("avg"=>$avg->avg, "list"=>$list, "number"=>$num->num, "likes"=>($likes->num ? $likes->num : 0), "dislikes"=>($dislikes->num ? $dislikes->num : 0));
 			}else{
 				return array();
 			}
@@ -338,7 +344,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		 * @author Shaun <shaunalberts@gmail.com>
 		 * @return array("avg"=>double average for image, "list"=>array of objects of all votes of the image, "number"=>integer the number of votes for the image)
 		 */
-		function nggv_getImageVotingResults($pid, $type=array("avg"=>true, "list"=>true, "number"=>true)) {
+		function nggv_getImageVotingResults($pid, $type=array("avg"=>true, "list"=>true, "number"=>true, "likes"=>true, "dislikes"=>true)) {
 			if(is_numeric($pid)) {
 				global $wpdb;
 				
@@ -349,10 +355,16 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					$list = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' ORDER BY dateadded DESC");
 				}
 				if($type["num"]) {
-					$num = $wpdb->get_row("SELECT COUNT(vote) AS num FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' GROUP BY gid");
+					$num = $wpdb->get_row("SELECT COUNT(vote) AS num FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' GROUP BY pid");
 				}
-				
-				return array("avg"=>$avg->avg, "list"=>$list, "number"=>$num->num);
+				if($type["likes"]) {
+					$likes = $wpdb->get_row("SELECT COUNT(vote) AS num FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' AND vote = 100 GROUP BY pid");
+				}
+				if($type["dislikes"]) {
+					$dislikes = $wpdb->get_row("SELECT COUNT(vote) AS num FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' AND vote = 0 GROUP BY pid");
+				}
+
+				return array("avg"=>$avg->avg, "list"=>$list, "number"=>$num->num, "likes"=>($likes->num ? $likes->num : 0), "dislikes"=>($dislikes->num ? $dislikes->num : 0));
 			}else{
 				return array();
 			}
@@ -369,8 +381,10 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				echo '<!--#NGGV START AJAX RESPONSE#-->'; //do not edit this line!!!
 				
 				if($_GET["gid"]) {
-					$results = nggv_getVotingResults($_GET["gid"]);
+					$options = nggv_getVotingOptions($_GET["gid"]);
+					echo 'var nggv_voting_type = '.$options->voting_type.';';
 					
+					$results = nggv_getVotingResults($_GET["gid"]);
 					echo "var nggv_votes_list = [];";
 					foreach ((array)$results["list"] as $key=>$val) {
 						$user_info = $val->user_id ? get_userdata($val->user_id) : array();
@@ -385,6 +399,9 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 						";
 					}
 				}else if($_GET["pid"]){
+					$options = nggv_getImageVotingOptions($_GET["pid"]);
+					echo 'var nggv_voting_type = '.$options->voting_type.';';
+
 					$results = nggv_getImageVotingResults($_GET["pid"]);
 					
 					echo "var nggv_votes_list = [];";
@@ -399,7 +416,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 							nggv_votes_list[nggv_votes_list.length-1][3][0] = '".$val->user_id."';
 							nggv_votes_list[nggv_votes_list.length-1][3][1] = '".$user_info->user_login."';
 						";
-					}					
+					}
 				}else{
 					//error num?
 				}
@@ -509,12 +526,14 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 											<select name="nggv[gallery][voting_type]">
 												<option value="1" <?php echo (get_option('nggv_gallery_voting_type') == 1 ? 'selected="selected"' : ''); ?>>Drop Down</option>
 												<option value="2" <?php echo (get_option('nggv_gallery_voting_type') == 2 ? 'selected="selected"' : ''); ?>>Star Rating</option>
+												<option value="3" <?php echo (get_option('nggv_gallery_voting_type') == 3 ? 'selected="selected"' : ''); ?>>Link / Dislike</option>
 											</select>
 										</td>
 										<td style="text-align:center;">
 											<select name="nggv[image][voting_type]">
 												<option value="1" <?php echo (get_option('nggv_image_voting_type') == 1 ? 'selected="selected"' : ''); ?>>Drop Down</option>
 												<option value="2" <?php echo (get_option('nggv_image_voting_type') == 2 ? 'selected="selected"' : ''); ?>>Star Rating</option>
+												<option value="3" <?php echo (get_option('nggv_image_voting_type') == 3 ? 'selected="selected"' : ''); ?>>Link / Dislike</option>
 											</select>
 
 										</td>
@@ -620,7 +639,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			if(!$nggv_scripted) { //its a hack, so just check that its only called once :)
 				$nggv_scripted = true;
 				$options = nggv_getVotingOptions($_GET["gid"]);
-				$results = nggv_getVotingResults($_GET["gid"], array("avg"=>true, "num"=>true));
+				$results = nggv_getVotingResults($_GET["gid"], array("avg"=>true, "num"=>true, "likes"=>true, "dislikes"=>true));
 				
 				$uri = $_SERVER["REQUEST_URI"];
 				$info = parse_url($uri);
@@ -636,6 +655,8 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				var voting_type = parseInt(".$options->voting_type.");
 				var nggv_avg = Math.round(".($results["avg"] ? $results["avg"] : 0).") / 10;
 				var nggv_num_votes = parseInt(".($results["number"] ? $results["number"] : 0).");
+				var nggv_num_likes = parseInt(".($results["likes"] ? $results["likes"] : 0).");
+				var nggv_num_dislikes = parseInt(".($results["dislikes"] ? $results["dislikes"] : 0).");
 				
 				var nggv_more_url = '".$popup."';
 				</script>";
@@ -665,14 +686,25 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				echo "Rating Type: <select name='nggv_image[".$pid."][voting_type]'>";
 				echo "<option value='1' ".($opts->voting_type == 1 || !$opts->voting_type ? "selected" : "").">Drop Down</option>";
 				echo "<option value='2' ".($opts->voting_type == 2 ? "selected" : "").">Star Rating</option>";
+				echo "<option value='3' ".($opts->voting_type == 3 ? "selected" : "").">Like / Dislike</option>";
 				echo "</select>";
 				echo "</td></tr>";
 
 				
 				echo "</table>";
-				$results = nggv_getImageVotingResults($pid, array("avg"=>true, "num"=>true));
-				//str = nggv_avg+" / 10 <a href='#' id='nggv_more_results'>("+nggv_num_votes+" votes cast)</a>";
-				echo "Current Avg: ".round(($results["avg"] / 10), 1)." / 10 <a href='' class='nggv_mote_results_image' id='nggv_more_results_image_".$pid."'>(".($results["number"] ? $results["number"] : "0")." votes cast)</a>";
+				if($opts->voting_type == 3) {
+					$results = nggv_getImageVotingResults($pid, array("likes"=>true, "dislikes"=>true));
+					echo "Current Votes: ";
+					echo "<a href='' class='nggv_mote_results_image' id='nggv_more_results_image_".$pid."'>";
+					echo $results['likes'].' ';
+					echo $results['likes'] == 1 ? 'Like, ' : 'Likes, ';
+					echo $results['dislikes'].' ';
+					echo $results['dislikes'] == 1 ? 'Dislike' : 'Dislikes';
+					echo "</a>";
+				}else{
+					$results = nggv_getImageVotingResults($pid, array("avg"=>true, "num"=>true));
+					echo "Current Avg: ".round(($results["avg"] / 10), 1)." / 10 <a href='' class='nggv_mote_results_image' id='nggv_more_results_image_".$pid."'>(".($results["number"] ? $results["number"] : "0")." votes cast)</a>";
+				}
 			}
 		}
 		
@@ -766,6 +798,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				return;
 			}
 			
+			$options = nggv_getVotingOptions($gid);
 			$out = "";
 			
 			if($_POST && !$_POST["nggv"]["vote_pid_id"]) { //select box voting
@@ -787,7 +820,10 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					$out .= '</div>';
 					//maybe return $out here?  user really should only get here if they are 'hacking' the dom anyway?
 				}
-			}else if($_GET["gid"] && $_GET["r"]) { //star rating, js disabled
+			}else if($_GET["gid"] && is_numeric($_GET["r"])) { //star or like/dislike, js disabled
+				if($options->voting_type == 3) { //like/dislike
+					if($_GET['r']) {$_GET['r'] = 100;} //like/dislike is all or nothing :)
+				}
 				if(($msg = nggv_saveVote(array("gid"=>$gid, "vote"=>$_GET["r"]))) === true) {
 					$saved = true;
 				}else{
@@ -808,8 +844,6 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 			}
 			
-			$options = nggv_getVotingOptions($gid);
-			
 			if((($canVote = nggv_canVote($gid)) === true) && !$saved) { //they can vote, show the form
 				/* dev note.  you can set any values from 0-100 (the api will only allow this range) */
 				
@@ -817,7 +851,22 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				$url .= (strpos($url, "?") === false ? "?" : (substr($url, -1) == "&" ? "" : "&")); //make sure the url ends in "?" or "&" correctly
 				//todo, try not duplicate the GET[gid] and GET[r] if clicked 2x
 				
-				if($options->voting_type == 2) { //star
+				if($options->voting_type == 3) { //like / dislike (new from 1.5)
+					$dirName = plugin_basename(dirname(__FILE__));
+					$out .= '<div class="nggv_container">';
+					$out .= '<a href="'.$url.'gid='.$gid.'&r=1"><img src="'.WP_PLUGIN_URL."/".$dirName."/images/thumbs_up.png".'" alt="Like" /></a>';
+					$out .= '<a href="'.$url.'gid='.$gid.'&r=0"><img src="'.WP_PLUGIN_URL."/".$dirName."/images/thumbs_down.png".'" alt="Dislike" /></a>';
+					if($options->user_results) {
+						$results = nggv_getVotingResults($gid, array("likes"=>true, "dislikes"=>true));
+						$out .= '<div class="like-results">';
+						$out .= $results['likes'].' ';
+						$out .= $results['likes'] == 1 ? 'Like, ' : 'Likes, ';
+						$out .= $results['dislikes'].' ';
+						$out .= $results['dislikes'] == 1 ? 'Dislike' : 'Dislikes';
+						$out .= '</div>';
+					}
+					$out .= '</div>';
+				}elseif($options->voting_type == 2) { //star
 					$results = nggv_getVotingResults($gid, array("avg"=>true));
 					$out .= '<link rel="stylesheet" href="'.WP_PLUGIN_URL.'/nextgen-gallery-voting/css/star_rating.css" type="text/css" media="screen" />';
 					$out .= '<div class="nggv_container">';
@@ -863,12 +912,21 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 						$out .= '</div>';
 					}else if($canVote === "USER HAS VOTED" || $canVote === "IP HAS VOTED" || $canVote === true) { //api tells us they have voted, can they see results? (canVote will be true if they have just voted successfully)
 						if($options->user_results) { //yes! show it
-							$results = nggv_getVotingResults($gid, array("avg"=>true));
-							if($options->voting_type == 2) {
+							if($options->voting_type == 3) {
+								$results = nggv_getVotingResults($gid, array("likes"=>true, "dislikes"=>true));
+								$out .= '<div class="nggv_container">';
+								$out .= $results['likes'].' ';
+								$out .= $results['likes'] == 1 ? 'Like, ' : 'Likes, ';
+								$out .= $results['dislikes'].' ';
+								$out .= $results['dislikes'] == 1 ? 'Dislike' : 'Dislikes';
+								$out .= '</div>';
+							}elseif($options->voting_type == 2) {
+								$results = nggv_getVotingResults($gid, array("avg"=>true));
 								$out .= '<div class="nggv_container">';
 								$out .= 'Current Average: '.round(($results["avg"] / 20), 1)." / 5 stars";
-								$out .= '</div>';								
+								$out .= '</div>';
 							}else{
+								$results = nggv_getVotingResults($gid, array("avg"=>true));
 								$out .= '<div class="nggv_container">';
 								$out .= 'Current Average: '.round(($results["avg"] / 10), 1)." / 10";
 								$out .= '</div>';
@@ -891,6 +949,8 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				return;
 			}
 			
+			$options = nggv_getImageVotingOptions($pid);
+			
 			$out = "";
 			
 			if($_POST && $_POST["nggv"]["vote_pid_id"] && $pid == $_POST["nggv"]["vote_pid_id"]) { //dont try save a vote for a gallery silly (and make sure this is the right pid cause we are in a loop)
@@ -912,7 +972,10 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					$out .= '</div>';
 					//maybe return $out here?  user really should only get here if they are 'hacking' the dom anyway?
 				}
-			}else if($_GET["pid"] && $_GET["r"] && $pid == $_GET["pid"]) { //star rating, js disabled
+			}else if($_GET["pid"] && is_numeric($_GET["r"]) && $pid == $_GET["pid"]) { //star and like/dislike rating, js disabled
+				if($options->voting_type == 3) { //like/dislike
+					if($_GET['r']) {$_GET['r'] = 100;} //like/dislike is all or nothing :)
+				}
 				if(($msg = nggv_saveVoteImage(array("pid"=>$pid, "vote"=>$_GET["r"]))) === true) {
 					$saved = true;
 				}else{
@@ -933,15 +996,27 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 			}
 			
-			$options = nggv_getImageVotingOptions($pid);
-			
 			if((($canVote = nggv_canVoteImage($pid)) === true) && !$saved) { //they can vote, show the form
 				$url = $_SERVER["REQUEST_URI"];
 				
 				$url .= (strpos($url, "?") === false ? "?" : (substr($url, -1) == "&" ? "" : "&")); //make sure the url ends in "?" or "&" correctly
 				//todo, try not duplicate the GET[gid] and GET[r] if clicked 2x
-				
-				if($options->voting_type == 2) { //star
+				if($options->voting_type == 3) { //like / dislike (new in 1.5)
+					$dirName = plugin_basename(dirname(__FILE__));
+					$out .= '<div class="nggv_container">';
+					$out .= '<a href="'.$url.'pid='.$pid.'&r=1"><img src="'.WP_PLUGIN_URL."/".$dirName."/images/thumbs_up.png".'" alt="Like" /></a>';
+					$out .= '<a href="'.$url.'pid='.$pid.'&r=0"><img src="'.WP_PLUGIN_URL."/".$dirName."/images/thumbs_down.png".'" alt="Dislike" /></a>';
+					if($options->user_results) {
+						$results = nggv_getImageVotingResults($pid, array("likes"=>true, "dislikes"=>true));
+						$out .= '<div class="like-results">';
+						$out .= $results['likes'].' ';
+						$out .= $results['likes'] == 1 ? 'Like, ' : 'Likes, ';
+						$out .= $results['dislikes'].' ';
+						$out .= $results['dislikes'] == 1 ? 'Dislike' : 'Dislikes';
+						$out .= '</div>';
+					}
+					$out .= '</div>';
+				}elseif($options->voting_type == 2) { //star
 					$results = nggv_getImageVotingResults($pid, array("avg"=>true));
 					$out .= '<link rel="stylesheet" href="'.WP_PLUGIN_URL.'/nextgen-gallery-voting/css/star_rating.css" type="text/css" media="screen" />';
 					$out .= '<div class="nggv_container">';
@@ -989,12 +1064,21 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 						$out .= '</div>';
 					}else if($canVote === "USER HAS VOTED" || $canVote === "IP HAS VOTED" || $canVote === true) { //api tells us they have voted, can they see results? (canVote will be true if they have just voted successfully)
 						if($options->user_results) { //yes! show it
-							$results = nggv_getImageVotingResults($pid, array("avg"=>true));
-							if($options->voting_type == 2) {
+							if($options->voting_type == 3) {
+								$results = nggv_getImageVotingResults($pid, array("likes"=>true, "dislikes"=>true));
+								$out .= '<div class="nggv-image-vote-container">';
+								$out .= $results['likes'].' ';
+								$out .= $results['likes'] == 1 ? 'Like, ' : 'Likes, ';
+								$out .= $results['dislikes'].' ';
+								$out .= $results['dislikes'] == 1 ? 'Dislike' : 'Dislikes';
+								$out .= '</div>';
+							}elseif($options->voting_type == 2) {
+								$results = nggv_getImageVotingResults($pid, array("avg"=>true));
 								$out .= '<div class="nggv-image-vote-container">';
 								$out .= 'Current Average: '.round(($results["avg"] / 20), 1)." / 5 stars";
-								$out .= '</div>';								
+								$out .= '</div>';
 							}else{
+								$results = nggv_getImageVotingResults($pid, array("avg"=>true));
 								$out .= '<div class="nggv-image-vote-container">';
 								$out .= 'Current Average: '.round(($results["avg"] / 10), 1)." / 10";
 								$out .= '</div>';
