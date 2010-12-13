@@ -14,6 +14,10 @@ This plugin adds the ability for users to vote on NextGEN Galleries and Images. 
 
 NGG Voting was inspired by a request from [Troy Schlegel of Schlegel Photography](http://www.schlegelphotography.com/).  Please read the FAQ for more info on how it works.
 
+**IF YOU ASK A QUESTION ON THE FORUM THAT IS ANSWERED IN THE FAQ, YOU ARE A RETARD AND I WILL NOT ANSWER, LEARN TO READ BEFORE TRYING TO BUILD WEBSITES!**
+
+I was recently in a motorcycle accident, and am not online too much anymore anyway.  Feel free to donate via the link on the right to by me a beer and get me through this tough time :)
+
 == Frequently Asked Questions ==
 
 = In a nutshell, what is this? =
