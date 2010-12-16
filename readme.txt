@@ -3,14 +3,14 @@ Contributors: shauno
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=RV9L3YEW67VTU&lc=ZA&item_name=Wordpress%20Plugins&item_number=WPP&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
-Tested up to: 3.0.1
-Stable tag: 1.5
+Tested up to: 3.0.3
+Stable tag: 1.6
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
 == Description ==
 
-**It seems a major update in NextGEN Gallery 1.7.x and greater has broken compatibility with this plugin. I am currently NOT working on resolving this.  Please consider support for this plugin over, at least for now.**
+**Please use version 1.5 for version of NGG LOWER than 1.7.x.  Please use version 1.6 or greater for versions of NGG >= 1.7.x**
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -46,6 +46,9 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Go to 'Manage Gallery' in NextGEN, and select a gallery to see the new options
 
 == Changelog ==
+
+= 1.6 =
+* Made this plugin compatibile with NextGEN Galley 1.7.x and greater, which breaks compatibility with lower versions of NGG
 
 = 1.5 =
 * Added a new type of voting, the "Like / Dislike"

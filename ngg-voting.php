@@ -612,7 +612,8 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			}
 		}
 		
-		add_action("ngg_manage_gallery_columns", "nggv_add_image_vote_options_field");
+		//add_action("ngg_manage_gallery_columns", "nggv_add_image_vote_options_field");
+		add_action("ngg_manage_images_columns", "nggv_add_image_vote_options_field");
 		/**
 		 * Add a custom field to the images field list.  This give us a place to add the voting options for each image with nggv_add_image_vote_options_field()
 		 * Also enqueues a script that will add the gallery voting options with js (sneaky, but has to be done)
@@ -626,7 +627,8 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			return $gallery_columns;
 		}
 		
-		add_action("ngg_manage_gallery_custom_column", "nggv_add_image_voting_options", 10 ,2);
+		//add_action("ngg_manage_gallery_custom_column", "nggv_add_image_voting_options", 10 ,2);
+		add_action("ngg_manage_image_custom_column", "nggv_add_image_voting_options", 10 ,2);
 		/**
 		 * Add the voing options to the gallery (sneaky js) and each image
 		 * @param string $gallery_column_key The key value of the 'custom' fields added by nggv_add_image_vote_options_field()
