@@ -10,6 +10,8 @@ This plugin adds the ability for users to vote on NextGEN Galleries and Images. 
 
 == Description ==
 
+**It seems a major update in NextGEN Gallery 1.7.x and greater has broken compatibility with this plugin. I am currently NOT working on resolving this.  Please consider support for this plugin over, at least for now.**
+
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
 NGG Voting was inspired by a request from [Troy Schlegel of Schlegel Photography](http://www.schlegelphotography.com/).  Please read the FAQ for more info on how it works.
