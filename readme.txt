@@ -4,11 +4,13 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=RV9L3
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
 Tested up to: 3.0.3
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
 == Description ==
+
+**Please use version 1.5 for version of NGG LOWER than 1.7.x.  Please use version 1.6 or greater for versions of NGG >= 1.7.x**
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -44,6 +46,9 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Go to 'Manage Gallery' in NextGEN, and select a gallery to see the new options
 
 == Changelog ==
+
+= 1.6.2 =
+* I screwed up the backwards compatibility, sorry.  Use 1.5 for < NGG1.7
 
 = 1.6.1 =
 * Made it backwards compatible with NGG 1.6.x and lower. Should have been done with the last update, but I was spaced on pain meds
