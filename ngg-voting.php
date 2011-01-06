@@ -2,11 +2,11 @@
 /*
 Plugin Name: NextGEN Gallery Voting
 Description: This plugin allows users to add user voting to NextGEN Gallery Images 
-Version: 1.6.2
+Version: 1.7
 Author: Shaun Alberts
 */
 /*
-Copyright 2010  Shaun Alberts  (email : shaunalberts@gmail.com)
+Copyright 2011  Shaun Alberts  (email : shaunalberts@gmail.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -886,8 +886,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				$out .= "nggv_js.saved = ".($saved ? "1" : "0").";";
 				$out .= "nggv_js.msg = '".addslashes($errOut)."';";
 			}else if($_GET['gid']){
-				//TODO XMAS remove color styling
-				$out .= '<div class="nggv-error" style="display:'.($errOut ? 'block' : 'none').'; border:1px solid red; background:#fcc; padding:10px;">';
+				$out .= '<div class="nggv-error">';
 				$out .= $errOut;
 				$out .= '</div>';
 			}
@@ -899,7 +898,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				
 				if($options->voting_type == 3) { //like / dislike (new from 1.5)
 					$dirName = plugin_basename(dirname(__FILE__));
-					$out .= nggv_include_js(WP_PLUGIN_URL.'/'.$dirName.'/js/ajaxify-likes.js');	//ajaxify voting, from 1.7 TODO XMAS version?
+					$out .= nggv_include_js(WP_PLUGIN_URL.'/'.$dirName.'/js/ajaxify-likes.js');	//ajaxify voting, from v1.7
 					
 					$out .= '<div class="nggv_container">';
 					$out .= '<a href="'.$url.'gid='.$gid.'&r=1" class="nggv-link-like"><img src="'.WP_PLUGIN_URL."/".$dirName."/images/thumbs_up.png".'" alt="Like" /></a>';
@@ -916,7 +915,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					}
 					$out .= '</div>';
 				}elseif($options->voting_type == 2) { //star
-					$out .= nggv_include_js(WP_PLUGIN_URL.'/nextgen-gallery-voting/js/ajaxify-stars.js');	//ajaxify voting, from 1.7 TODO XMAS version?
+					$out .= nggv_include_js(WP_PLUGIN_URL.'/nextgen-gallery-voting/js/ajaxify-stars.js');	//ajaxify voting, from v1.7
 					
 					$results = nggv_getVotingResults($gid, array("avg"=>true));
 					$out .= '<link rel="stylesheet" href="'.WP_PLUGIN_URL.'/nextgen-gallery-voting/css/star_rating.css" type="text/css" media="screen" />';
@@ -1119,7 +1118,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				//todo, try not duplicate the GET[gid] and GET[r] if clicked 2x
 				if($options->voting_type == 3) { //like / dislike (new in 1.5)
 					$dirName = plugin_basename(dirname(__FILE__));
-					$out .= nggv_include_js(WP_PLUGIN_URL.'/'.$dirName.'/js/ajaxify-likes.js');	//ajaxify voting, from 1.7 TODO XMAS version?
+					$out .= nggv_include_js(WP_PLUGIN_URL.'/'.$dirName.'/js/ajaxify-likes.js');	//ajaxify voting, from v1.7
 					
 					$out .= '<div class="nggv_container">';
 					$out .= '<a href="'.$url.'pid='.$pid.'&r=1" class="nggv-link-like"><img src="'.WP_PLUGIN_URL."/".$dirName."/images/thumbs_up.png".'" alt="Like" /></a>';
@@ -1136,7 +1135,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					}
 					$out .= '</div>';
 				}elseif($options->voting_type == 2) { //star
-					$out .= nggv_include_js(WP_PLUGIN_URL.'/nextgen-gallery-voting/js/ajaxify-stars.js');	//ajaxify voting, from 1.7 TODO XMAS version?
+					$out .= nggv_include_js(WP_PLUGIN_URL.'/nextgen-gallery-voting/js/ajaxify-stars.js');	//ajaxify voting, from v1.7
 					$results = nggv_getImageVotingResults($pid, array("avg"=>true));
 					$out .= '<link rel="stylesheet" href="'.WP_PLUGIN_URL.'/nextgen-gallery-voting/css/star_rating.css" type="text/css" media="screen" />';
 					$out .= '<div class="nggv_container">';

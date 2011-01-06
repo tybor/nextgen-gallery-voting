@@ -3,8 +3,8 @@ Contributors: shauno
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=RV9L3YEW67VTU&lc=ZA&item_name=Wordpress%20Plugins&item_number=WPP&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
-Tested up to: 3.0.3
-Stable tag: 1.6.2
+Tested up to: 3.0.4
+Stable tag: 1.7
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -46,6 +46,9 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Go to 'Manage Gallery' in NextGEN, and select a gallery to see the new options
 
 == Changelog ==
+
+= 1.7 =
+* Made 'like/dislike' and 'star' ratings use ajax to cast votes.  But it will fall back if javascript is not enabled
 
 = 1.6.2 =
 * I screwed up the backwards compatibility, sorry.  Use 1.5 for < NGG1.7
