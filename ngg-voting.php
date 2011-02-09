@@ -2,7 +2,7 @@
 /*
 Plugin Name: NextGEN Gallery Voting
 Description: This plugin allows users to add user voting to NextGEN Gallery Images 
-Version: 1.7
+Version: 1.7.1
 Author: Shaun Alberts
 */
 /*
@@ -1070,7 +1070,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					//$out .= '</div>';
 					//maybe return $out here?  user really should only get here if they are 'hacking' the dom anyway?
 				}
-			}else if($_GET["pid"] && is_numeric($_GET["r"]) && $pid == $_GET["pid"]) { //star and like/dislike rating, js disabled
+			}else if($_GET["ngg-pid"] && is_numeric($_GET["r"]) && $pid == $_GET["ngg-pid"]) { //star and like/dislike rating, js disabled
 				if($options->voting_type == 3) { //like/dislike
 					if($_GET['r']) {$_GET['r'] = 100;} //like/dislike is all or nothing :)
 				}
@@ -1094,7 +1094,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 			}
 			
-			if($_GET['ajaxify'] && $_GET['pid'] == $pid) {
+			if($_GET['ajaxify'] && $_GET['ngg-pid'] == $pid) {
 				$out .= "<!--#NGGV START AJAX RESPONSE#-->";
 				$out .= "var nggv_js = {};";
 				$out .= "nggv_js.options = {};";
@@ -1121,8 +1121,8 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					$out .= nggv_include_js(WP_PLUGIN_URL.'/'.$dirName.'/js/ajaxify-likes.js');	//ajaxify voting, from v1.7
 					
 					$out .= '<div class="nggv_container">';
-					$out .= '<a href="'.$url.'pid='.$pid.'&r=1" class="nggv-link-like"><img src="'.WP_PLUGIN_URL."/".$dirName."/images/thumbs_up.png".'" alt="Like" /></a>';
-					$out .= '<a href="'.$url.'pid='.$pid.'&r=0" class="nggv-link-dislike"><img src="'.WP_PLUGIN_URL."/".$dirName."/images/thumbs_down.png".'" alt="Dislike" /></a>';
+					$out .= '<a href="'.$url.'ngg-pid='.$pid.'&r=1" class="nggv-link-like"><img src="'.WP_PLUGIN_URL."/".$dirName."/images/thumbs_up.png".'" alt="Like" /></a>';
+					$out .= '<a href="'.$url.'ngg-pid='.$pid.'&r=0" class="nggv-link-dislike"><img src="'.WP_PLUGIN_URL."/".$dirName."/images/thumbs_down.png".'" alt="Dislike" /></a>';
 					$out .= '<img class="nggv-star-loader" src="'.WP_PLUGIN_URL.'/'.$dirName.'/images/loading.gif'.'" style="display:none;" />';
 					if($options->user_results) {
 						$results = nggv_getImageVotingResults($pid, array("likes"=>true, "dislikes"=>true));
@@ -1144,11 +1144,11 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					if($options->user_results) { //user can see curent rating
 						$out .= '<li class="current-rating" style="width:'.round($results["avg"]).'%;">Currently '.round($results["avg"] / 20, 1).'/5 Stars.</li>';
 					}
-					$out .= '<li><a href="'.$url.'pid='.$pid.'&r=20" title="1 star out of 5" class="one-star">1</a></li>';
-					$out .= '<li><a href="'.$url.'pid='.$pid.'&r=40" title="2 stars out of 5" class="two-stars">2</a></li>';
-					$out .= '<li><a href="'.$url.'pid='.$pid.'&r=60" title="3 stars out of 5" class="three-stars">3</a></li>';
-					$out .= '<li><a href="'.$url.'pid='.$pid.'&r=80" title="4 stars out of 5" class="four-stars">4</a></li>';
-					$out .= '<li><a href="'.$url.'pid='.$pid.'&r=100" title="5 stars out of 5" class="five-stars">5</a></li>';
+					$out .= '<li><a href="'.$url.'ngg-pid='.$pid.'&r=20" title="1 star out of 5" class="one-star">1</a></li>';
+					$out .= '<li><a href="'.$url.'ngg-pid='.$pid.'&r=40" title="2 stars out of 5" class="two-stars">2</a></li>';
+					$out .= '<li><a href="'.$url.'ngg-pid='.$pid.'&r=60" title="3 stars out of 5" class="three-stars">3</a></li>';
+					$out .= '<li><a href="'.$url.'ngg-pid='.$pid.'&r=80" title="4 stars out of 5" class="four-stars">4</a></li>';
+					$out .= '<li><a href="'.$url.'ngg-pid='.$pid.'&r=100" title="5 stars out of 5" class="five-stars">5</a></li>';
 					$out .= '</ul>';
 					$out .= '</span>';
 					$out .= '<img class="nggv-star-loader" src="'.WP_PLUGIN_URL."/nextgen-gallery-voting/images/loading.gif".'" style="display:none;" />';
@@ -1255,7 +1255,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 			}
 			
-			if($_GET['ajaxify'] && $_GET['pid'] == $pid) {
+			if($_GET['ajaxify'] && $_GET['ngg-pid'] == $pid) {
 				$out .= "<!--#NGGV END AJAX RESPONSE#-->";
 			}
 			

@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=RV9L3
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
 Tested up to: 3.0.4
-Stable tag: 1.7
+Stable tag: 1.7.1
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -47,8 +47,11 @@ Under the Gallery or Image options, the current average vote show along with how
 
 == Changelog ==
 
+=1.7.1=
+* Fixed a bug stopping voting working when including the gallery with the [nggtags] shortcode (Thanks migf1 for finding and reporting it)
+
 = 1.7 =
-* Made 'like/dislike' and 'star' ratings use ajax to cast votes.  But it will fall back if javascript is not enabled
+* Made 'like/dislike' and 'star' ratings use ajax to cast votes.  But it will fall back if javascripti is not enabled
 
 = 1.6.2 =
 * I screwed up the backwards compatibility, sorry.  Use 1.5 for < NGG1.7
