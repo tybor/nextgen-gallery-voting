@@ -3,7 +3,7 @@ Contributors: shauno
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=RV9L3YEW67VTU&lc=ZA&item_name=Wordpress%20Plugins&item_number=WPP&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
-Tested up to: 3.0.4
+Tested up to: 3.0.5
 Stable tag: 1.7.1
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
