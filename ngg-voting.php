@@ -1,9 +1,11 @@
 <?php
 /*
 Plugin Name: NextGEN Gallery Voting
+Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images 
-Version: 1.7.1
+Version: 1.7.2
 Author: Shaun Alberts
+Author URI: http://shauno.co.za
 */
 /*
 Copyright 2011  Shaun Alberts  (email : shaunalberts@gmail.com)
@@ -526,14 +528,14 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 											<select name="nggv[gallery][voting_type]">
 												<option value="1" <?php echo (get_option('nggv_gallery_voting_type') == 1 ? 'selected="selected"' : ''); ?>>Drop Down</option>
 												<option value="2" <?php echo (get_option('nggv_gallery_voting_type') == 2 ? 'selected="selected"' : ''); ?>>Star Rating</option>
-												<option value="3" <?php echo (get_option('nggv_gallery_voting_type') == 3 ? 'selected="selected"' : ''); ?>>Link / Dislike</option>
+												<option value="3" <?php echo (get_option('nggv_gallery_voting_type') == 3 ? 'selected="selected"' : ''); ?>>Like / Dislike</option>
 											</select>
 										</td>
 										<td style="text-align:center;">
 											<select name="nggv[image][voting_type]">
 												<option value="1" <?php echo (get_option('nggv_image_voting_type') == 1 ? 'selected="selected"' : ''); ?>>Drop Down</option>
 												<option value="2" <?php echo (get_option('nggv_image_voting_type') == 2 ? 'selected="selected"' : ''); ?>>Star Rating</option>
-												<option value="3" <?php echo (get_option('nggv_image_voting_type') == 3 ? 'selected="selected"' : ''); ?>>Link / Dislike</option>
+												<option value="3" <?php echo (get_option('nggv_image_voting_type') == 3 ? 'selected="selected"' : ''); ?>>Like / Dislike</option>
 											</select>
 
 										</td>
@@ -739,7 +741,14 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				Only allow 1 vote per person <em>(IP or userid is used to stop multiple)</em><br />
 				
 				<input type="checkbox" name="nggv[gallery][user_results]" <?php echo (get_option('nggv_gallery_user_results') ? 'checked="checked"' : ''); ?> />
-				Allow users to see results
+				Allow users to see results<br />
+				
+				Rating Type:
+				<select name="nggv[gallery][voting_type]">
+					<option value="1" <?php echo (get_option('nggv_gallery_voting_type') == 1 ? 'selected="selected"' : ''); ?>>Drop Down</option>
+					<option value="2" <?php echo (get_option('nggv_gallery_voting_type') == 2 ? 'selected="selected"' : ''); ?>>Star Rating</option>
+					<option value="3" <?php echo (get_option('nggv_gallery_voting_type') == 3 ? 'selected="selected"' : ''); ?>>Like / Dislike</option>
+				</select>
 			</td>
 			</tr>
 			<?php
