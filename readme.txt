@@ -45,15 +45,15 @@ Under the Gallery or Image options, the current average vote show along with how
 
 == Changelog ==
 
-=1.8=
+= 1.8 =
 * Fixed a bug stopping votes saving if MySQL was in STRICT MODE
 * Fixed a bug showing floating numbers for low rated images
 * Added report to list top images
 
-=1.7.2=
+= 1.7.2 =
 * Added 'Voting Type' default when creating a new gallery
 
-=1.7.1=
+= 1.7.1 =
 * Fixed a bug stopping voting working when including the gallery with the [nggtags] shortcode (Thanks migf1 for finding and reporting it)
 
 = 1.7 =
