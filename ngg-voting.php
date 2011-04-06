@@ -2,8 +2,8 @@
 /*
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
-Description: This plugin allows users to add user voting to NextGEN Gallery Images 
-Version: 1.7.2
+Description: This plugin allows users to add user voting to NextGEN Gallery Images
+Version: 1.8
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -150,7 +150,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					global $wpdb, $current_user;
 					get_currentuserinfo();
 					$ip = getUserIp();
-					if($wpdb->query("INSERT INTO ".$wpdb->prefix."nggv_votes (id, gid, vote, user_id, ip, proxy, dateadded) VALUES (null, '".$wpdb->escape($config["gid"])."', '".$wpdb->escape($config["vote"])."', '".$current_user->ID."', '".$ip["ip"]."', '".$ip["proxy"]."', '".date("Y-m-d H:i:s", time())."')")) {
+					if($wpdb->query("INSERT INTO ".$wpdb->prefix."nggv_votes (id, pid, gid, vote, user_id, ip, proxy, dateadded) VALUES (null, 0, '".$wpdb->escape($config["gid"])."', '".$wpdb->escape($config["vote"])."', '".$current_user->ID."', '".$ip["ip"]."', '".$ip["proxy"]."', '".date("Y-m-d H:i:s", time())."')")) {
 						return true;
 					}else{
 						return false;
@@ -176,7 +176,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					global $wpdb, $current_user;
 					get_currentuserinfo();
 					$ip = getUserIp();
-					if($wpdb->query("INSERT INTO ".$wpdb->prefix."nggv_votes (id, pid, vote, user_id, ip, proxy, dateadded) VALUES (null, '".$wpdb->escape($config["pid"])."', '".$wpdb->escape($config["vote"])."', '".$current_user->ID."', '".$ip["ip"]."', '".$ip["proxy"]."', '".date("Y-m-d H:i:s", time())."')")) {
+					if($wpdb->query("INSERT INTO ".$wpdb->prefix."nggv_votes (id, gid, pid, vote, user_id, ip, proxy, dateadded) VALUES (null, 0, '".$wpdb->escape($config["pid"])."', '".$wpdb->escape($config["vote"])."', '".$current_user->ID."', '".$ip["ip"]."', '".$ip["proxy"]."', '".date("Y-m-d H:i:s", time())."')")) {
 						return true;
 					}else{
 						return false;
@@ -376,7 +376,8 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 	// admin function {
 		add_action('admin_menu', 'nggv_adminMenu');
 		function nggv_adminMenu() {
-			add_menu_page('NGG Voting', 'NGG Voting', 8, __FILE__, 'nggv_admin_options');
+			add_menu_page('NGG Voting Defaults', 'NGG Voting Defaults', 'manage_options', __FILE__, 'nggv_admin_options');
+			add_submenu_page(__FILE__, 'NGG Voting Top Rated Images', 'Top Rated Images', 'manage_options', 'nggv-top-rated-images', 'nggv_admin_top_rated_images');
 		}
 		function nggv_admin_options() {
 			if($_GET["action"] == "get-votes-list") {
@@ -789,6 +790,126 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				
 				nggv_save_gallery_options($image['galleryID'], $post, true);
 			}
+		}
+		
+		function nggv_admin_top_rated_images() {
+			global $nggdb, $wpdb;
+			$gallerylist = $nggdb->find_all_galleries('gid', 'asc', false, 0, 0, false);
+
+			$_GET['nggv']['limit'] = is_numeric($_GET['nggv']['limit']) ? $_GET['nggv']['limit'] : 25;
+			if(isset($_GET['nggv']['gid'])) { //form submitted
+				$qry = 'SELECT pid, SUM(vote) AS total, AVG(vote) AS avg, MIN(vote) AS min, MAX(vote) AS max, COUNT(vote) AS num'; //yes, no joins for now. performance isnt an issue (i hope...)
+				$qry .= ' FROM '.$wpdb->prefix.'nggv_votes';
+				$qry .= ' WHERE';
+				$qry .= $_GET['nggv']['gid'] ? ' pid = '.$wpdb->escape($_GET['nggv']['gid']) : ' pid > 0';
+				$qry .= ' GROUP BY pid';
+				$qry .= ' ORDER BY avg '.$_GET['nggv']['order'];
+				$qry .= ' LIMIT 0, '.$_GET['nggv']['limit'];
+				
+				$list = $wpdb->get_results($qry);
+			}
+			?>
+			<div class="wrap">
+				<h2>Top Rated Images</h2>
+			
+				<div id="poststuff">
+					<form id="" method="GET" action="" accept-charset="utf-8">
+						<input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" />
+						<div class="postbox">
+							<h3>Filter</h3>
+							<table class="form-table">
+								<tr>
+									<th style="width:20%;">Gallery</th>
+									<td style="width:30%;">
+										<select name="nggv[gid]">
+											<option value="0">All</option>
+											<?php foreach ((array)$gallerylist as $key=>$val) { ?>
+												<option value="<?php echo $val->gid ?>" <?php echo ($_GET['nggv']['gid'] == $val->gid ? 'selected' : ''); ?>>
+													<?php echo $val->title; ?>
+												</option>
+											<?php } ?>
+										</select>
+									</td>
+									
+									<th style="width:20%;">Order</th>
+									<td style="width:30%;">
+										<select name="nggv[order]">
+											<option value="desc" <?php echo ($_GET['nggv']['order'] == 'desc' ? 'selected' : ''); ?>>Highest to Lowest</option>
+											<option value="asc" <?php echo ($_GET['nggv']['order'] == 'asc' ? 'selected' : ''); ?>>Lowest to Highest</option>
+										</select>
+									</td>
+								</tr>
+								
+								<tr>
+									<th>Limit</th>
+									<td>
+										<input type="text" name="nggv[limit]" value="<?php echo $_GET['nggv']['limit'] ?>" />
+									</td>
+								</tr>
+								
+								<tr>
+									<td colspan=4>
+										<input class="button-primary" type="submit" value="Filter Images" />
+									</td>
+								</tr>
+							</table>
+						</div>
+					</form>
+				</div>
+
+				<?php if($list) { ?>
+					<div class="updated below-h2">
+						Wow, check all those awesome people voing for your images! Have you returned the favour by <a target="_blank" href="http://wordpress.org/extend/plugins/nextgen-gallery-voting/">rating NGG Voting</a>?<br />
+						Maybe you're even more awesomer and might consider <a target="_blank" href="http://shauno.co.za/donate/">donating</a>?
+					</div>
+				<?php } ?>
+				
+				<table cellspacing="0" class="wp-list-table widefat fixed">
+  				<thead>
+  					<tr>
+  						<th style="width:30px;">pid</th>
+  						<th>Gallery Name</th>
+  						<th>Filename</th>
+  						<th>Avg / 10</th>
+  						<th>Max / 10</th>
+  						<th>Min / 10</th>
+  						<th>Number Votes</th>
+  						<th></th>
+  					</tr>
+  				</thead>
+  				<?php if($list) { ?>
+  					<tbody>
+  						<?php if($list) { ?>
+  							<?php $cnt = 0; ?>
+  							<?php foreach ($list as $key=>$val) { ?>
+  								<?php $image = nggdb::find_image($val->pid); ?>
+									<tr <?php echo $cnt % 2 == 0 ? 'class="alternate"' : '' ?>>
+										<td><?php echo $val->pid ?></td>
+										<td><?php echo $image->title; ?></td>
+										<td><?php echo $image->filename; ?></td>
+										<td><?php echo round($val->avg / 10, 2) ?></td>
+										<td><?php echo round($val->max / 10, 2) ?></td>
+										<td><?php echo round($val->min / 10, 2) ?></td>
+										<td><?php echo $val->num ?>	</td>
+										<td><img src="<?php echo $image->thumbURL; ?>" /></td>
+									</tr>
+									<?php $cnt++; ?>
+								<?php } ?>
+  						<?php }else{ ?>
+  							<tr>
+  								<td colspan="4">No records found. <a href="<?php echo $this->pluginUrl; ?>page=sf-gallery-add">Click here</a> to add your first gallery.</td>
+  							</tr>
+  						<?php } ?>
+  					</tbody>
+  				<?php }else{ ?>
+  					<td colspan=6>No results found</td>
+  				<?php } ?>
+  			</table>
+
+			</div>
+			
+			
+			<?php
 		}
 	//}
 

@@ -19,6 +19,7 @@
 	display: inline
 	list-style: none;
 	margin: 0px !important;
+	text-indent: -1000px;
 }
 .star-rating a,
 .star-rating .current-rating{
