@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 1.8
+Version: 1.8.1
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -629,7 +629,15 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		 * @return array $gallery_columns with an added field
 		 */
 		function nggv_add_image_vote_options_field($gallery_columns) {
-			wp_enqueue_script('nggc_gallery_options', WP_PLUGIN_URL . '/nextgen-gallery-voting/js/gallery_options.js', array('jquery'), false, true);
+			if(version_compare(NGGVERSION, '1.8.0', '>=')) {
+				global $nggv_scripted_tag;
+				if(!$nggv_scripted_tag) {
+					$nggv_scripted_tag = true;
+					echo '<script src="'.WP_PLUGIN_URL.'/nextgen-gallery-voting/js/gallery_options.js"></script>';
+				}
+			}else{ //the old way of doing it (sheesh, i didnt read those docs)
+				wp_enqueue_script('nggc_gallery_options', WP_PLUGIN_URL . '/nextgen-gallery-voting/js/gallery_options.js', array('jquery'), false, true);
+			}
 			$gallery_columns["nggv_image_vote_options"] = "Image Voting Options";
 			return $gallery_columns;
 		}
