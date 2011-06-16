@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 1.8.1
+Version: 1.8.2
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -805,17 +805,17 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			$gallerylist = $nggdb->find_all_galleries('gid', 'asc', false, 0, 0, false);
 
 			$_GET['nggv']['limit'] = is_numeric($_GET['nggv']['limit']) ? $_GET['nggv']['limit'] : 25;
-			if(isset($_GET['nggv']['gid'])) { //form submitted
-				$qry = 'SELECT pid, SUM(vote) AS total, AVG(vote) AS avg, MIN(vote) AS min, MAX(vote) AS max, COUNT(vote) AS num'; //yes, no joins for now. performance isnt an issue (i hope...)
-				$qry .= ' FROM '.$wpdb->prefix.'nggv_votes';
-				$qry .= ' WHERE';
-				$qry .= $_GET['nggv']['gid'] ? ' pid = '.$wpdb->escape($_GET['nggv']['gid']) : ' pid > 0';
-				$qry .= ' GROUP BY pid';
-				$qry .= ' ORDER BY avg '.$_GET['nggv']['order'];
-				$qry .= ' LIMIT 0, '.$_GET['nggv']['limit'];
-				
-				$list = $wpdb->get_results($qry);
-			}
+			$_GET['nggv']['order'] = $_GET['nggv']['order'] ? $_GET['nggv']['order'] : 'DESC';
+			
+			$qry = 'SELECT pid, SUM(vote) AS total, AVG(vote) AS avg, MIN(vote) AS min, MAX(vote) AS max, COUNT(vote) AS num'; //yes, no joins for now. performance isnt an issue (i hope...)
+			$qry .= ' FROM '.$wpdb->prefix.'nggv_votes';
+			$qry .= ' WHERE';
+			$qry .= ' pid > 0';
+			$qry .= ' GROUP BY pid';
+			$qry .= ' ORDER BY avg '.$_GET['nggv']['order'];
+			$qry .= ' LIMIT 0, '.$_GET['nggv']['limit'];
+			
+			$list = $wpdb->get_results($qry);
 			?>
 			<div class="wrap">
 				<h2>Top Rated Images</h2>
@@ -827,16 +827,9 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 							<h3>Filter</h3>
 							<table class="form-table">
 								<tr>
-									<th style="width:20%;">Gallery</th>
-									<td style="width:30%;">
-										<select name="nggv[gid]">
-											<option value="0">All</option>
-											<?php foreach ((array)$gallerylist as $key=>$val) { ?>
-												<option value="<?php echo $val->gid ?>" <?php echo ($_GET['nggv']['gid'] == $val->gid ? 'selected' : ''); ?>>
-													<?php echo $val->title; ?>
-												</option>
-											<?php } ?>
-										</select>
+									<th>Limit</th>
+									<td>
+										<input type="text" name="nggv[limit]" value="<?php echo $_GET['nggv']['limit'] ?>" />
 									</td>
 									
 									<th style="width:20%;">Order</th>
@@ -845,13 +838,6 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 											<option value="desc" <?php echo ($_GET['nggv']['order'] == 'desc' ? 'selected' : ''); ?>>Highest to Lowest</option>
 											<option value="asc" <?php echo ($_GET['nggv']['order'] == 'asc' ? 'selected' : ''); ?>>Lowest to Highest</option>
 										</select>
-									</td>
-								</tr>
-								
-								<tr>
-									<th>Limit</th>
-									<td>
-										<input type="text" name="nggv[limit]" value="<?php echo $_GET['nggv']['limit'] ?>" />
 									</td>
 								</tr>
 								
