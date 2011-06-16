@@ -48,7 +48,7 @@ Under the Gallery or Image options, the current average vote show along with how
 = 1.8 =
 * Made compatible with NGG 1.8.0 (Thanks to csillery for reporting the issue)
 
-= 1.8 =
+= 1.8.1 =
 * Fixed a bug stopping votes saving if MySQL was in STRICT MODE
 * Fixed a bug showing floating numbers for low rated images
 * Added report to list top images
