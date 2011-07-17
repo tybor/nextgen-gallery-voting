@@ -3,8 +3,8 @@ Contributors: shauno
 Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
-Tested up to: 3.1.3
-Stable tag: 1.8.2
+Tested up to: 3.2.1
+Stable tag: 1.9.0
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -30,6 +30,7 @@ For Galleries it's easy.  You just need to enable voting on the gallery, and the
 For images there's an extra step.  First you still need to enable voing on the specific images you want.  Then you need to add a tag to the gallery file of NextGEN.  I'm going to use NextGEN version 1.3.6 to as the example, but it should be pretty much the same for all 'newish' versions:
 Between line 38 and line 50 in `/nextgen-gallery/view/gallery.php` is the loop that shows each image in a specific gallery.  You need to add the following tag anywhere in that loop: `<?php echo nggv_imageVoteForm($image->pid); ?>`.
 That will output the vote form where you put it.  Personally I like to place it on a new line after the close `<a>` tag (new line created 45)
+Do not put inside the `<a>` tag that wraps the image in some of the templates.
 
 = Ew, that looks hideous =
 Alas, it is true.  I have a pretty limited eye for design and layout.  But in the same way as the gallery voting form, there is plenty of place for you to work your CSS magic and make the voting forms look like you want.
@@ -44,6 +45,9 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Go to 'Manage Gallery' in NextGEN, and select a gallery to see the new options
 
 == Changelog ==
+
+= 1.9.0 =
+* Added ability to allow only 1 image vote per gallery
 
 = 1.8.2 =
 * Removed 'Gallery' filter from top images report as it was buggy

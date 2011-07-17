@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 1.8.2
+Version: 1.9.0
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -121,13 +121,23 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 			}
 			
-			if($options->force_once) {
+			if($options->force_once == 1) {
 				if($options->force_login) { //force login, so check userid has voted already
 					if(nggv_userHasVotedImage($pid, $current_user->ID)) {
 						return "USER HAS VOTED";
 					}
 				}else{ //no forced login, so just check the IP for a vote
 					if(nggv_ipHasVotedImage($pid)) {
+						return "IP HAS VOTED";
+					}
+				}
+			}else if($options->force_once == 2) {
+				if($options->force_login) { //force login, so check userid has voted already
+					if(nggv_userHasVotedOnGalleryImage($pid, $current_user->ID)) {
+						return "USER HAS VOTED";
+					}
+				}else{ //no forced login, so just check the IP for a vote
+					if(nggv_ipHasVotedOnGalleryImage($pid)) {
 						return "IP HAS VOTED";
 					}
 				}
@@ -160,7 +170,6 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 			}
 		}
-		
 		
 		/**
 			* Save the vote.  Checks nggv_canVoteImage() to be sure you aren't being sneaky
@@ -279,8 +288,33 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		}
 
 		/**
+			* Check if a user has voted on any image in this $pid gallery before
+			* @param int $pid The image ID to check
+			* @param int $userid The users id to check
+			* @author Shaun <shaunalberts@gmail.com>
+			* @return bool true if the user has voted on any image in the same gallery as this $pid, false of not
+			*/
+		function nggv_userHasVotedOnGalleryImage($pid, $userid) {
+			global $wpdb;
+						
+			if(!$image = nggdb::find_image($pid)) {
+				return true; //huh, cant find image, so dont let the person vote to be safe (this should never happen)
+			}
+			
+			$picturelist = nggdb::get_gallery($image->gid);
+			foreach ((array)$picturelist as $key=>$val) {
+				if($v = nggv_userHasVotedImage($val->pid, $userid)) {
+					return true; //aha! there was a vote somewhere in this gallery.
+				}
+			}
+			
+			return false; //cant find any votes, so seems safe
+			
+		}
+
+		/**
 		 * Check if an IP has voted on an image before 
-		 * @param int $gid The image ID
+		 * @param int $pid The image ID
 		 * @param string The IP to check.  If not passed, the current users IP will be assumed
 		 * @author Shaun <shaunalberts@gmail.com>
 		 * @return object of all the votes this IP has cast for this image, or blank array
@@ -298,6 +332,30 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				return array();
 			}
 			
+		}
+		
+		/**
+		 * Check if an IP has voted on any images in the gallery of the $pid passed
+		 * @param int $pid The image ID
+		 * @param string The IP to check.  If not passed, the current users IP will be assumed
+		 * @author Shaun <shaunalberts@gmail.com>
+		 * @return bool true if the $ip has voted on any image in the same gallery as this $pid, false of not
+		 */
+		function nggv_ipHasVotedOnGalleryImage($pid, $ip=null) {
+			global $wpdb;
+						
+			if(!$image = nggdb::find_image($pid)) {
+				return true; //huh, cant find image, so dont let the person vote to be safe (this should never happen)
+			}
+			
+			$picturelist = nggdb::get_gallery($image->gid);
+			foreach ((array)$picturelist as $key=>$val) {
+				if($v = nggv_ipHasVotedImage($val->pid, $ip)) {
+					return true; //aha! there was a vote somewhere in this gallery.
+				}
+			}
+			
+			return false; //cant find any votes, so seems safe
 		}
 		
 		/**
@@ -466,9 +524,9 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 						update_option('nggv_image_force_login', ($_POST['nggv']['image']['force_login'] ? '1' : '0'));
 					}
 					if(get_option('nggv_image_force_once') === false) { //bool false means does not exists
-						add_option('nggv_image_force_once', ($_POST['nggv']['image']['force_once'] ? '1' : '0'), null, 'no');
+						add_option('nggv_image_force_once', ($_POST['nggv']['image']['force_once'] <= 2 ? $_POST['nggv']['image']['force_once'] : '0'), null, 'no');
 					}else{
-						update_option('nggv_image_force_once', ($_POST['nggv']['image']['force_once'] ? '1' : '0'));
+						update_option('nggv_image_force_once', ($_POST['nggv']['image']['force_once'] <= 2 ? $_POST['nggv']['image']['force_once'] : '0'));
 					}
 					if(get_option('nggv_image_user_results') === false) { //bool false means does not exists
 						add_option('nggv_image_user_results', ($_POST['nggv']['image']['user_results'] ? '1' : '0'), null, 'no');
@@ -494,15 +552,15 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 						<form id="" method="POST" action="<?php echo $filepath; ?>" accept-charset="utf-8" >
 							<input type="hidden" name="nggv[force]" value="1" /> <!-- this will just force _POST['nggv'] even if all checkboxes are unchecked -->
 							<div class="postbox">
-								<table class="form-table" style="width:500px;">
+								<table class="form-table" style="width:550px;">
 									<tr>
 										<td colspan="2" style="text-align:right;"><h3>Gallery</h3></th>
 										<td style="text-align:center;"><h3>Image</h3></th>
 									</tr>
 									<tr valign="top">
-										<th style="width:280px;">Enable:</th>
-										<td style="width:60px; text-align:center;"><input type="checkbox" name="nggv[gallery][enable]" <?php echo (get_option('nggv_gallery_enable') ? 'checked="checked"' : ''); ?> /></td>
-										<td style="width:60px; text-align:center;"><input type="checkbox" name="nggv[image][enable]" <?php echo (get_option('nggv_image_enable') ? 'checked="checked"' : ''); ?> /></td>
+										<th style="width:250px;">Enable:</th>
+										<td style="width:100px; text-align:center;"><input type="checkbox" name="nggv[gallery][enable]" <?php echo (get_option('nggv_gallery_enable') ? 'checked="checked"' : ''); ?> /></td>
+										<td style="width:200px; text-align:center;"><input type="checkbox" name="nggv[image][enable]" <?php echo (get_option('nggv_image_enable') ? 'checked="checked"' : ''); ?> /></td>
 									</tr>
 
 									<tr valign="top">
@@ -512,9 +570,13 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 									</tr>
 
 									<tr valign="top">
-										<th>Only allow 1 vote per person<br ><em>(IP or userid is used to stop multiple)</em></th>
+										<th>Number of votes allowed<br ><em>(IP or userid is used to stop multiple)</em></th>
 										<td style="text-align:center;"><input type="checkbox" name="nggv[gallery][force_once]" <?php echo (get_option('nggv_gallery_force_once') ? 'checked="checked"' : ''); ?> /></td>
-										<td style="text-align:center;"><input type="checkbox" name="nggv[image][force_once]" <?php echo (get_option('nggv_image_force_once') ? 'checked="checked"' : ''); ?> /></td>
+										<td style="text-align:center;">
+											<input type="radio" name="nggv[image][force_once]" <?php echo (get_option('nggv_image_force_once') == 0 ? 'checked="checked"' : ''); ?> value="0" />Unlimited votes<br />
+											<input type="radio" name="nggv[image][force_once]" <?php echo (get_option('nggv_image_force_once') == 1 ? 'checked="checked"' : ''); ?> value="1" />One per image<br />
+											<input type="radio" name="nggv[image][force_once]" <?php echo (get_option('nggv_image_force_once') == 2 ? 'checked="checked"' : ''); ?> value="2" />One per gallery image is in
+										</td>
 									</tr>
 
 									<tr valign="top">
@@ -568,7 +630,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		 *  bool (int 1/0) post["nggv"]["user_results"] : If users see results
 		 *  bool (int 1/0) post["nggv_image"][image ID]["enable"] : Enable voting for the image
 		 *  bool (int 1/0) post["nggv_image"][image ID]["force_login"] : Only allow a user to vote once
-		 *  bool (int 1/0) post["nggv_image"][image ID]["force_once"] : Only allow a user to vote once
+		 *  integer (0, 1, 2) post["nggv_image"][image ID]["force_once"] : Only allow a user to vote once(1), Only allow user to vote once per image in this gallery(2)
 		 *  bool (int 1/0) post["nggv_image"][image ID]["user_results"] : If users see results
 		 * @param bool $noReload If set to true, this function will act like an api and simply let the code execution continue after being called.
 		 *  If false (default), this funtion uses a js hack to reload the page
@@ -578,7 +640,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		function nggv_save_gallery_options($gid, $post, $noReload=false) {
 			global $wpdb;
 
-			if($post["nggv"]) {
+			if($post["nggv"]) { //gallery options
 				$enable = $post["nggv"]["enable"] ? "1" : "0";
 				$login = $post["nggv"]["force_login"] ? "1" : "0";
 				$once = $post["nggv"]["force_once"] ? "1" : "0";
@@ -592,11 +654,11 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 			}
 			
-			if($post["nggv_image"]) {
+			if($post["nggv_image"]) { //image options
 				foreach ((array)$post["nggv_image"] as $pid=>$val) {
 					$enable = $wpdb->escape($val["enable"]) ? "1" : "0";
 					$login = $wpdb->escape($val["force_login"]) ? "1" : "0";
-					$once = $wpdb->escape($val["force_once"]) ? "1" : "0";
+					$once = $wpdb->escape($val["force_once"]) <= 2 ? $wpdb->escape($val["force_once"]) : "0";
 					$user_results = $wpdb->escape($val["user_results"]) ? "1" : "0";
 					$voting_type = is_numeric($val["voting_type"]) ? $val["voting_type"] : 1;
 
@@ -700,7 +762,10 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				echo "<table width='100%'";
 				echo "<tr><td width='1px'><input type='checkbox' name='nggv_image[".$pid."][enable]' value=1 ".($opts->enable ? "checked" : "")." /></td><td>Enable for image</td></tr>";
 				echo "<tr><td width='1px'><input type='checkbox' name='nggv_image[".$pid."][force_login]' value=1 ".($opts->force_login ? "checked" : "")." /></td><td>Only allow logged in users</td></tr>";
-				echo "<tr><td width='1px'><input type='checkbox' name='nggv_image[".$pid."][force_once]' value=1 ".($opts->force_once ? "checked" : "")." /></td><td>Only allow 1 vote per person</td></tr>";
+				//echo "<tr><td width='1px'><input type='checkbox' name='nggv_image[".$pid."][force_once]' value=1 ".($opts->force_once ? "checked" : "")." /></td><td>Only allow 1 vote per person</td></tr>";
+				echo "<tr><td width='1px'><input type='radio' name='nggv_image[".$pid."][force_once]' value=3 ".(!$opts->force_once ? "checked" : "")." /></td><td>Unlimited votes for this image</td></tr>";
+				echo "<tr><td width='1px'><input type='radio' name='nggv_image[".$pid."][force_once]' value=1 ".($opts->force_once == 1 ? "checked" : "")." /></td><td>Only allow 1 vote per person for this image</td></tr>";
+				echo "<tr><td width='1px'><input type='radio' name='nggv_image[".$pid."][force_once]' value=2 ".($opts->force_once == 2 ? "checked" : "")." /></td><td>Only allow 1 vote per person for this gallery</td></tr>";
 				echo "<tr><td width='1px'><input type='checkbox' name='nggv_image[".$pid."][user_results]' value=1 ".($opts->user_results ? "checked" : "")." /></td><td>Allow users to see results</td></tr>";
 				
 				echo "<tr><td colspan=2>";
@@ -1185,9 +1250,9 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					}else if($msg == "NOT LOGGED IN") {
 						$errOut .= "You need to be logged in to vote on this image.";
 					}else if($msg == "USER HAS VOTED") {
-						$errOut .= "You have already voted on this image.";
+						$errOut .= "You have already voted.";
 					}else if($msg == "IP HAS VOTED") {
-						$errOut .= "This IP has already voted on this image.";
+						$errOut .= "This IP has already voted.";
 					}else{
 						$errOut .= "There was a problem saving your vote, please try again in a few moments.";
 					}
@@ -1207,9 +1272,9 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					}else if($msg == "NOT LOGGED IN") {
 						$errOut .= "You need to be logged in to vote on this image.";
 					}else if($msg == "USER HAS VOTED") {
-						$errOut .= "You have already voted on this image.";
+						$errOut .= "You have already voted.";
 					}else if($msg == "IP HAS VOTED") {
-						$errOut .= "This IP has already voted on this image.";
+						$errOut .= "This IP has already voted.";
 					}else{
 						$errOut .= "There was a problem saving your vote, please try again in a few moments.";
 					}
