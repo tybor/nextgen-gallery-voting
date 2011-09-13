@@ -27,7 +27,7 @@ jQuery(document).ready(function() {
 								var msg = '';
 								if(nggv_js.saved) {
 									jQuery(document).focus();
-									container.attr('innerHTML', nggv_js.nggv_container);
+									container.html(nggv_js.nggv_container);
 								}else{
 									if(nggv_js.msg) {
 										msg = nggv_js.msg
@@ -42,12 +42,12 @@ jQuery(document).ready(function() {
 							if(msg) {
 								//the 'continer' div and 'nggv-error' div are on the same dom level, making them siblings
 								container.siblings('div.nggv-error').show();
-								container.siblings('div.nggv-error').attr('innerHTML', msg);
+								container.siblings('div.nggv-error').html(msg);
 							}
 						},
 						error: function(XMLHttpRequest, textStatus, errorThrown) {
 								jQuery('div.nggv-error').show();
-								jQuery('div.nggv-error').attr('innerHTML', 'There was a problem saving your vote, please try again in a few moments.');
+								jQuery('div.nggv-error').html('There was a problem saving your vote, please try again in a few moments.');
 						},
 						complete: function() {
 							container.find('img.nggv-star-loader').hide();
