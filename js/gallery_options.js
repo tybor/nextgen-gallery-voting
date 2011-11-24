@@ -47,7 +47,7 @@ jQuery(function() {
 						
 						jQuery.get(nggv_more_url, 'gid='+nggv_gid, function(data, status) {
 								if(status == 'success') {
-									var start = data.indexOf("<!--#NGGV START AJAX RESPONSE#-->") + 33; //find the start of the outputting by the ajax url (stupid wordpress and poor buffering options blah blah)
+									var start = data.indexOf("<!-- NGGV START AJAX RESPONSE -->") + 33; //find the start of the outputting by the ajax url (stupid wordpress and poor buffering options blah blah)
 									eval(data.substr(start)); //the array of voters gets echoed out at the ajax url
 									if(nggv_votes_list.length > 0) {
 										//todo, paginate results (pseudo even, with hidden divs etc)?
@@ -100,7 +100,7 @@ jQuery(function() {
 						
 						jQuery.get(nggv_more_url, 'pid='+pid, function(data, status) {
 								if(status == 'success') {
-									var start = data.indexOf("<!--#NGGV START AJAX RESPONSE#-->") + 33; //find the start of the outputting by the ajax url (stupid wordpress and poor buffering options blah blah)
+									var start = data.indexOf("<!-- NGGV START AJAX RESPONSE -->") + 33; //find the start of the outputting by the ajax url (stupid wordpress and poor buffering options blah blah)
 									eval(data.substr(start)); //the array of voters gets echoed out at the ajax url
 									if(nggv_votes_list.length > 0) {
 										//todo, paginate results (pseudo even, with hidden divs etc)?

@@ -1,10 +1,10 @@
-=== Plugin Name ===
+=== NextGEN Gallery Voting ===
 Contributors: shauno
 Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
 Tested up to: 3.2.1
-Stable tag: 1.9.1
+Stable tag: 1.9.2
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -47,6 +47,9 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Go to 'Manage Gallery' in NextGEN, and select a gallery to see the new options
 
 == Changelog ==
+
+= 1.9.2 =
+* Changed the HTML comments used as markers for JS output when AJAX voting to not be so similar to Apache SSIs.
 
 = 1.9.1 =
 * Fixed a bug that contiuned to show voting form even if option to not show results was selected (It didn't reveal results, just was a confusing interaction, thanks to Iced_Plum for reporting it)

@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 1.9.1
+Version: 1.9.2
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -439,7 +439,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		}
 		function nggv_admin_options() {
 			if($_GET["action"] == "get-votes-list") {
-				echo '<!--#NGGV START AJAX RESPONSE#-->'; //do not edit this line!!!
+				echo '<!-- NGGV START AJAX RESPONSE -->'; //do not edit this line!!!
 				
 				if($_GET["gid"]) {
 					$options = nggv_getVotingOptions($_GET["gid"]);
@@ -1065,7 +1065,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			}
 
 			if($_GET['ajaxify'] && $_GET['gid'] == $gid) {
-				$out .= "<!--#NGGV START AJAX RESPONSE#-->";
+				$out .= "<!-- NGGV START AJAX RESPONSE -->";
 				$out .= "var nggv_js = {};";
 				$out .= "nggv_js.options = {};";
 				foreach ($options as $key=>$val) {
@@ -1224,7 +1224,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			}
 			
 			if($_GET['ajaxify'] && $_GET['gid'] == $gid) {
-				$out .= "<!--#NGGV END AJAX RESPONSE#-->";
+				$out .= "<!-- NGGV END AJAX RESPONSE -->";
 			}
 			
 			return $out;
@@ -1284,7 +1284,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			}
 			
 			if($_GET['ajaxify'] && $_GET['ngg-pid'] == $pid) {
-				$out .= "<!--#NGGV START AJAX RESPONSE#-->";
+				$out .= "<!-- NGGV START AJAX RESPONSE -->";
 				$out .= "var nggv_js = {};";
 				$out .= "nggv_js.options = {};";
 				foreach ($options as $key=>$val) {
@@ -1445,7 +1445,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			}
 			
 			if($_GET['ajaxify'] && $_GET['ngg-pid'] == $pid) {
-				$out .= "<!--#NGGV END AJAX RESPONSE#-->";
+				$out .= "<!-- NGGV END AJAX RESPONSE -->";
 			}
 			
 			return $out;
