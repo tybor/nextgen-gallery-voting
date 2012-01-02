@@ -3,12 +3,12 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 1.9.2
+Version: 1.9.3
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
 /*
-Copyright 2011  Shaun Alberts  (email : shaunalberts@gmail.com)
+Copyright 2012  Shaun Alberts  (email : shaunalberts@gmail.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -1022,7 +1022,9 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			$errOut = "";
 			
 			if($_POST && !$_POST["nggv"]["vote_pid_id"]) { //select box voting
-				if(($msg = nggv_saveVote(array("gid"=>$gid, "vote"=>$_POST["nggv"]["vote"]))) === true) {
+				if($_POST["nggv"]["required_pot_field"]) { //seems spammy
+					$errOut .= "Vote not saved. Spam like activity detected.";
+				}else if(($msg = nggv_saveVote(array("gid"=>$gid, "vote"=>$_POST["nggv"]["vote"]))) === true) {
 					$saved = true;
 				}else{
 					//$errOut .= '<div class="nggv-error">';
@@ -1074,7 +1076,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				
 				$out .= "nggv_js.saved = ".($saved ? "1" : "0").";";
 				$out .= "nggv_js.msg = '".addslashes($errOut)."';";
-			}else if($_GET['gid']){
+			}else if($_GET['gid'] || $_POST['nggv']){
 				$out .= '<div class="nggv-error">';
 				$out .= $errOut;
 				$out .= '</div>';
@@ -1124,8 +1126,12 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					$out .= '<img class="nggv-star-loader" src="'.WP_PLUGIN_URL."/nextgen-gallery-voting/images/loading.gif".'" style="display:none;" />';
 					$out .= '</div>';
 				}else{ //it will be 1, but why not use a catch all :) (drop down)
+					$out .= '<style>';
+					$out .= '.nggv-gallery-pot {display:none;}';
+					$out .= '</style>';
 					$out .= '<div class="nggv_container">';
 					$out .= '<form method="post" action="">';
+					$out .= '<input type="text" class="nggv-gallery-pot" name="nggv[required_pot_field]" value="" />'; //honey pot attempt, not sure how useful this will be. I will consider better options for cash :)
 					$out .= '<label forid="nggv_rating">Rate this gallery:</label>';
 					$out .= '<select id="nggv_rating" name="nggv[vote]">';
 					$out .= '<option value="0">0</option>';
@@ -1241,7 +1247,9 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			$errOut = "";
 			
 			if($_POST && $_POST["nggv"]["vote_pid_id"] && $pid == $_POST["nggv"]["vote_pid_id"]) { //dont try save a vote for a gallery silly (and make sure this is the right pid cause we are in a loop)
-				if(($msg = nggv_saveVoteImage(array("pid"=>$pid, "vote"=>$_POST["nggv"]["vote_image"]))) === true) {
+				if($_POST["nggv"]["required_pot_field"]) { //seems spammy
+					$errOut .= "Vote not saved. Spam like activity detected.";
+				}else if(($msg = nggv_saveVoteImage(array("pid"=>$pid, "vote"=>$_POST["nggv"]["vote_image"]))) === true) {
 					$saved = true;
 				}else{
 					//$out .= '<div class="nggv-error">';
@@ -1343,9 +1351,18 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					$out .= '<img class="nggv-star-loader" src="'.WP_PLUGIN_URL."/nextgen-gallery-voting/images/loading.gif".'" style="display:none;" />';
 					$out .= '</div>';
 				}else{
+					global $_nggv_image_once; //sorry, hacky shit to not output css more than once (meh, it's free, quit bitching)
+					if(!$_nggv_image_once) {
+						$out .= '<style>';
+						$out .= '.nggv-image-pot {display:none;}';
+						$out .= '</style>';
+						$_nggv_image_once = 1;
+					}
+					
 					/* dev note.  you can set any values from 0-100 (the api will only allow this range) */
 					$out .= '<div class="nggv-image-vote-container">';
 					$out .= '<form method="post" action="">';
+					$out .= '<input type="text" class="nggv-image-pot" name="nggv[required_pot_field]" value="" />'; //honey pot attempt, not sure how useful this will be. I will consider better options for cash :)
 					$out .= '<label forid="nggv_rating_image_'.$pid.'">Rate this image:</label>';
 					$out .= '<input type="hidden" name="nggv[vote_pid_id]" value="'.$pid.'" />';
 					$out .= '<select id="nggv_rating_image_'.$pid.'" name="nggv[vote_image]">';
