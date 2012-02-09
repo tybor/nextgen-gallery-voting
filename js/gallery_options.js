@@ -142,5 +142,11 @@ jQuery(function() {
 						return false; //cancel click
 				});
 				
+				jQuery("a.nggv_clear_image_results").click(function(e) { //button click to clear all votes per image. Just add a quick confirm to it
+						if(!confirm('Are you sure you want to delete all votes for this image? This cannot be undone!')) {
+							 e.preventDefault();
+							 return false;
+						}
+				});
 		});
 });

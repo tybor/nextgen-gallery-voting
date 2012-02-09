@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 1.9.3
+Version: 1.10
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -194,6 +194,22 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					return $msg;
 				}
 			}
+		}
+		
+		/**
+		 * Delete all votes for a specific image
+		 * @param int $pid The picture id from NGG
+		 * @author Shaun <shaunalberts@gmail.com>
+		 * @return true on success, false on failure
+		 */
+		function nggv_deleteImageVotes($pid) {
+			global $wpdb;
+			if($wpdb->query("DELETE FROM ".$wpdb->prefix."nggv_votes WHERE gid = 0 AND pid = ".$wpdb->escape($pid)) !== false) { //check for FALSE vs 0 (0 rows isn't a db error!)
+				return true;
+			}else{
+				return false;
+			}
+			
 		}
 		
 		//gets the users actual IP even if they are behind a proxy (if the proxy is nice enough to let us know their actual IP of course)
@@ -431,12 +447,21 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		}
 	//}
 	
-	// admin function {
+	// admin functions {
+		//proper admin inits as of 1.10
+		add_action('admin_init', 'nggv_adminInit');
+		function nggv_adminInit() {
+			//at some point WP (or NGG?) stopped loading thickbox. It is being used for displaying vote details to admin, so this makes sure it's loaded again
+			wp_enqueue_script('thickbox');
+			wp_enqueue_style('thickbox');
+		}
+	
 		add_action('admin_menu', 'nggv_adminMenu');
 		function nggv_adminMenu() {
 			add_menu_page('NGG Voting Defaults', 'NGG Voting Defaults', 'manage_options', __FILE__, 'nggv_admin_options');
 			add_submenu_page(__FILE__, 'NGG Voting Top Rated Images', 'Top Rated Images', 'manage_options', 'nggv-top-rated-images', 'nggv_admin_top_rated_images');
 		}
+		//I didn't know about the whole slug/identifier thing to register url's with wp, so kinda hacked my own solution. meh
 		function nggv_admin_options() {
 			if($_GET["action"] == "get-votes-list") {
 				echo '<!-- NGGV START AJAX RESPONSE -->'; //do not edit this line!!!
@@ -483,6 +508,12 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 				}
 				
 				exit;
+			}else if($_GET['action'] == 'clear-image-votes') {
+				$deleted = nggv_deleteImageVotes($_GET['pid']);
+				//force a crappy reload. yay...
+				echo "<script>window.location = 'admin.php?page=nggallery-manage-gallery&mode=edit&gid=".$_GET['gid']."';</script>";
+				exit;
+
 			}else{
 				if($_POST['nggv']) {
 					//Gallery
@@ -718,16 +749,16 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		 */
 		function nggv_add_image_voting_options($gallery_column_key, $pid) {
 			global $nggv_scripted;
+
+			$uri = $_SERVER["REQUEST_URI"];
+			$info = parse_url($uri);
+			$dirName = plugin_basename(dirname(__FILE__));
+			$popup = $info["path"]."?page=".$dirName."/".basename(__FILE__)."&action=get-votes-list";
 			
 			if(!$nggv_scripted) { //its a hack, so just check that its only called once :)
 				$nggv_scripted = true;
 				$options = nggv_getVotingOptions($_GET["gid"]);
 				$results = nggv_getVotingResults($_GET["gid"], array("avg"=>true, "num"=>true, "likes"=>true, "dislikes"=>true));
-				
-				$uri = $_SERVER["REQUEST_URI"];
-				$info = parse_url($uri);
-				$dirName = plugin_basename(dirname(__FILE__));
-				$popup = $info["path"]."?page=".$dirName."/".basename(__FILE__)."&action=get-votes-list";
 				
 				echo "<script>
 				var nggv_gid = parseInt(".$_GET["gid"].");
@@ -789,8 +820,10 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					echo "</a>";
 				}else{
 					$results = nggv_getImageVotingResults($pid, array("avg"=>true, "num"=>true));
-					echo "Current Avg: ".round(($results["avg"] / 10), 1)." / 10 <a href='' class='nggv_mote_results_image' id='nggv_more_results_image_".$pid."'>(".($results["number"] ? $results["number"] : "0")." votes cast)</a>";
+					echo "Current Avg: ".round(($results["avg"] / 10), 1)." / 10 <a href='#' class='nggv_mote_results_image' id='nggv_more_results_image_".$pid."'>(".($results["number"] ? $results["number"] : "0")." votes cast)</a>";
 				}
+				
+				echo '<br />[&nbsp;<a class="nggv_clear_image_results" href="'.$info['path'].'?page='.$dirName.'/'.basename(__FILE__).'&action=clear-image-votes&pid='.$pid.'&gid='.$_GET["gid"].'">Clear Votes</a>&nbsp;]';
 			}
 		}
 		
@@ -972,7 +1005,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		}
 	//}
 
-	// front end funcs {
+	// front end functions {
 		/**
 		 * Stops the script including a JS file more than once.  wp_enqueue_script only works
 		 * before any buffers have been outputted, so this will have to do
@@ -1361,7 +1394,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					
 					/* dev note.  you can set any values from 0-100 (the api will only allow this range) */
 					$out .= '<div class="nggv-image-vote-container">';
-					$out .= '<form method="post" action="">';
+					$out .= '<form method="post" action="#ngg-image-'.$pid.'">';
 					$out .= '<input type="text" class="nggv-image-pot" name="nggv[required_pot_field]" value="" />'; //honey pot attempt, not sure how useful this will be. I will consider better options for cash :)
 					$out .= '<label forid="nggv_rating_image_'.$pid.'">Rate this image:</label>';
 					$out .= '<input type="hidden" name="nggv[vote_pid_id]" value="'.$pid.'" />';
@@ -1469,7 +1502,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 		}
 	//}
 
-	//install funcs{
+	//install func {
 		register_activation_hook(__FILE__, "nggv_install");
 		/**
 		 * Create the database tables needed on activation
