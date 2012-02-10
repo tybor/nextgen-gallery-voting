@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 1.10
+Version: 1.10.1
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -1053,8 +1053,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 			$options = nggv_getVotingOptions($gid);
 			$out = "";
 			$errOut = "";
-			
-			if($_POST && !$_POST["nggv"]["vote_pid_id"]) { //select box voting
+			if($_POST && !$_POST["nggv"]["vote_pid_id"] && $_POST['nggv']['vote_gid_id'] == $gid) { //select box voting
 				if($_POST["nggv"]["required_pot_field"]) { //seems spammy
 					$errOut .= "Vote not saved. Spam like activity detected.";
 				}else if(($msg = nggv_saveVote(array("gid"=>$gid, "vote"=>$_POST["nggv"]["vote"]))) === true) {
@@ -1075,7 +1074,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					//$errOut .= '</div>';
 					//maybe return $errOut here?  user really should only get here if they are 'hacking' the dom anyway?
 				}
-			}else if($_GET["gid"] && is_numeric($_GET["r"])) { //star or like/dislike, js disabled
+			}else if($_GET["gid"] && is_numeric($_GET["r"]) && $gid == $_GET['gid']) { //star or like/dislike, js disabled
 				if($options->voting_type == 3) { //like/dislike
 					if($_GET['r']) {$_GET['r'] = 100;} //like/dislike is all or nothing :)
 				}
@@ -1165,6 +1164,7 @@ if(preg_match("#".basename(__FILE__)."#", $_SERVER["PHP_SELF"])) {die("You are n
 					$out .= '<div class="nggv_container">';
 					$out .= '<form method="post" action="">';
 					$out .= '<input type="text" class="nggv-gallery-pot" name="nggv[required_pot_field]" value="" />'; //honey pot attempt, not sure how useful this will be. I will consider better options for cash :)
+					$out .= '<input type="hidden" name="nggv[vote_gid_id]" value="'.$gid.'" />';
 					$out .= '<label forid="nggv_rating">Rate this gallery:</label>';
 					$out .= '<select id="nggv_rating" name="nggv[vote]">';
 					$out .= '<option value="0">0</option>';

@@ -4,7 +4,7 @@ Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
 Tested up to: 3.3.1
-Stable tag: 1.10
+Stable tag: 1.10.1
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -47,6 +47,9 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Go to 'Manage Gallery' in NextGEN, and select a gallery to see the new options
 
 == Changelog ==
+
+= 1.10.1 =
+* Fixed a bug that saved a vote for all galleries on the page if there was more than one (thanks oxiw for the report and Torteg for the confirmation example)
 
 = 1.10 =
 * Fixed admin viewing details of votes cast
