@@ -3,14 +3,12 @@ Contributors: shauno
 Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
-Tested up to: 3.3.1
-Stable tag: 1.10.1
+Tested up to: 3.4.2
+Stable tag: 2.0
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
 == Description ==
-
-**Please use version 1.5 for version of NGG LOWER than 1.7.x.  Please use version 1.6 or greater for versions of NGG >= 1.7.x**
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -26,16 +24,16 @@ Please read the FAQ, as you are required to add a tag to templates for certain f
 This plugin adds options that can allow your users to vote on (more like rate) your Galleries and Images. There are options to limit which Gallery/Image to allow voting on, if the user needs to be registered and logged in, if they can vote more that once, and if they can see the current results.
 
 = How do I add the voting form? =
-For Galleries it's easy.  You just need to enable voting on the gallery, and the voting form will automatically be appended to the gallery.  There is some basic styling, but the markp has got some classes and ids that you should easily be able to hook into with your own stylesheets to make suit your blog.
+For Galleries it's easy.  You just need to enable voting on the gallery, and the voting form will automatically be appended to the gallery.  There is some basic styling, but the markup has got plenty of classes and ids that you should easily be able to hook into with your own stylesheets to make suit your site.
 
-= Ok, and how do I make the voting form appear for images? =
-For images there's an extra step.  First you still need to enable voing on the specific images you want.  Then you need to add a tag to the gallery file of NextGEN.  I'm going to use NextGEN version 1.3.6 to as the example, but it should be pretty much the same for all 'newish' versions:
-Between line 38 and line 50 in `/nextgen-gallery/view/gallery.php` is the loop that shows each image in a specific gallery.  You need to add the following tag anywhere in that loop: `<?php echo nggv_imageVoteForm($image->pid); ?>`.
+= How do I make the voting form appear for images? =
+For images there's an extra step.  First you need to enable voing on the specific images you want.  Then you need to add a tag to the gallery template from NextGEN Gallery.  I'm going to use NextGEN version 1.9.6 to as the example, but it should be pretty much the same for all versions:
+Between line 38 and line 53 in `/nextgen-gallery/view/gallery.php` is the loop that shows each image in a specific gallery.  You need to add the following tag anywhere in that loop: `<?php echo nggv_imageVoteForm($image->pid); ?>`.
 That will output the vote form where you put it.  Personally I like to place it on a new line after the close `<a>` tag (new line created 45)
-Do not put inside the `<a>` tag that wraps the image in some of the templates.
+Do not put inside the `<a>` tag that wraps the image in some of the templates, or the link will conflict with the voting process.
 
 = Ew, that looks hideous =
-Alas, it is true.  I have a pretty limited eye for design and layout.  But in the same way as the gallery voting form, there is plenty of place for you to work your CSS magic and make the voting forms look like you want.
+This plugin intentionally adds very little styling to the voting forms. It does provded plenty of ids and classes allowing you to style it to fit in with your site.
 
 = Where are the results =
 Under the Gallery or Image options, the current average vote show along with how many votes have been cast.  Click on the number of votes cast to show more info on those votes.
@@ -45,8 +43,17 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Unzip the plugin to your `wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
 1. Go to 'Manage Gallery' in NextGEN, and select a gallery to see the new options
+1. Remember to add the tag to the gallery template for image voting to work!
 
 == Changelog ==
+
+= 2.0 =
+* Massive rewrite, with many under-the-hood changes, but very few visible. This rewrite is to make adding features easier in the future.
+* Update default options screen to use new WP styling.
+* Updated gallery voting options to not need javascript to load and save.
+* Changed order of voting options so star is out-the-box default (star, drop down, like/dislike).
+* Fixed bug including CSS more than once on occations.
+* Improved voting results in dashboard, to not always reflect out of 10.
 
 = 1.10.1 =
 * Fixed a bug that saved a vote for all galleries on the page if there was more than one (thanks oxiw for the report and Torteg for the confirmation example)
@@ -56,7 +63,7 @@ Under the Gallery or Image options, the current average vote show along with how
 * Made drop down voting jump down to last image voted on (simple anchor).
 * Added 'Clear Votes' button to images.
 
-== 1.9.3 ==
+= 1.9.3 =
 * Added honey pot spam protection for drop down voting. Not perfect, but it's a start.
 
 = 1.9.2 =
@@ -119,3 +126,9 @@ Under the Gallery or Image options, the current average vote show along with how
 
 = 1.0 =
 * Initial Release
+
+== Upgrade Notice ==
+
+= 2.0 =
+Version 2.0 is a big restructure of the plugin. If you have made customizations or are calling APIs externally, please test thoroughly before updating your live site!
+
