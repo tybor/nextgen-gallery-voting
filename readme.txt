@@ -132,6 +132,9 @@ Under the Gallery or Image options, the current average vote show along with how
 
 == Upgrade Notice ==
 
+= 2.0.1 =
+Fix for PHP versions prior to 5.3
+
 = 2.0 =
 Version 2.0 is a big restructure of the plugin. If you have made customizations or are calling APIs externally, please test thoroughly before updating your live site!
 
