@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 2.0
+Version: 2.0.1
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -46,11 +46,12 @@ class nggVoting {
 		register_activation_hook(__FILE__, array(&$this, 'dbUpgrade'));
 		
 		$this->adminUrl = get_bloginfo('url').'/wp-admin/admin.php?page='; //not sure this is ideal? TODO, research better way of getting pre-slug admin page URL
+		//use of dirname(__FILE__) as __DIR__ is only available from 5.3
 		$this->slug = basename(dirname(__FILE__));
 		
-		$dir = array_pop(explode('/', str_replace('\\', '/', __DIR__)));
+		$dir = array_pop(explode('/', str_replace('\\', '/', dirname(__FILE__))));
 		$this->pluginUrl = trailingslashit(WP_PLUGIN_URL.'/'.$dir);
-		$this->pluginPath = trailingslashit(str_replace('\\', '/', __DIR__));
+		$this->pluginPath = trailingslashit(str_replace('\\', '/', dirname(__FILE__)));
 		
 		//general hooks - admin
 		add_action('admin_init', array(&$this, 'adminInits'));

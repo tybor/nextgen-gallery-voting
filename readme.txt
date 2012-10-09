@@ -4,7 +4,7 @@ Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
 Tested up to: 3.4.2
-Stable tag: 2.0
+Stable tag: 2.0.1
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -46,6 +46,9 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Remember to add the tag to the gallery template for image voting to work!
 
 == Changelog ==
+
+= 2.0.1 =
+* Changed a reference of `__DIR__` to `dirname(__FILE__)`, as I didn't realise `__DIR__` isn't available until PHP 5.3.
 
 = 2.0 =
 * Massive rewrite, with many under-the-hood changes, but very few visible. This rewrite is to make adding features easier in the future.
