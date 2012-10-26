@@ -1,10 +1,3 @@
-function show_props(obj, obj_name) { /* debug method to alert objs */
-	var result = "";
-	for (var i in obj) 
-		result += obj_name + "." + i + " = " + obj[i] + "\n" ;
-	return result;
-}
-
 jQuery(document).ready(function() {
 		jQuery('a.nggv-link-like, a.nggv-link-dislike').click(function(e) {
 				var container = jQuery(this).parents('.nggv_container');
@@ -27,32 +20,39 @@ jQuery(document).ready(function() {
 								var msg = '';
 								if(nggv_js.saved) {
 									jQuery(document).focus();
-									container.html(nggv_js.nggv_container);
+									container.find('.nggv-vote-form').html(nggv_js.voting_form);
 								}else{
 									if(nggv_js.msg) {
 										msg = nggv_js.msg
 									}else{ //there should always be a msg, but just in case lets default one
-										msg = 'There was a problem saving your vote, please try again in a few moments.';
+										msg = jQuery('#ngg-genric-err-msg').val();
+									}
+									
+									//if we got markup back, replace the voting form with it
+									if(nggv_js.voting_form) {
+										jQuery(document).focus();
+										container.find('.nggv-vote-form').html(nggv_js.voting_form);
 									}
 								}
 							}else{
-								msg = 'There was a problem saving your vote, please try again in a few moments.';
+								msg = jQuery('#ngg-genric-err-msg').val();
 							}
 							
 							if(msg) {
 								//the 'continer' div and 'nggv-error' div are on the same dom level, making them siblings
-								container.siblings('div.nggv-error').show();
-								container.siblings('div.nggv-error').html(msg);
+								container.find('div.nggv-error').show();
+								container.find('div.nggv-error').html(msg);
 							}
 						},
 						error: function(XMLHttpRequest, textStatus, errorThrown) {
-								jQuery('div.nggv-error').show();
-								jQuery('div.nggv-error').html('There was a problem saving your vote, please try again in a few moments.');
+							container.find('div.nggv-error').show();
+							container.find('div.nggv-error').html(jQuery('#ngg-genric-err-msg').val());
 						},
 						complete: function() {
 							container.find('img.nggv-star-loader').hide();
 						}
 				});
+				
 				e.preventDefault();
 				return false;
 		});
