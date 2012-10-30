@@ -11,10 +11,13 @@ jQuery(document).ready(function() {
 						url: url,
 						data: '',
 						success: function(data, textStatus, XMLHttpRequest) {
-							var start = data.indexOf("<!-- NGGV START AJAX RESPONSE -->") + 33; //find the start of the outputting by the ajax url (stupid wordpress and poor buffering options blah blah)
-							var end = data.indexOf("<!-- NGGV END AJAX RESPONSE -->");
+							var start = data.indexOf("<!-- NGGV START AJAX RESPONSE -->") + 41; //find the start of the outputting by the ajax url (stupid wordpress and poor buffering options blah blah)
+							var end = data.indexOf("<script><!-- NGGV END AJAX RESPONSE -->");
 							
-							eval(data.substr(start, (end-start))); //the array of voters gets echoed out at the ajax url
+							var js = data.substr(start, (end-start));
+							js = js.replace(/(\r\n|\n|\r)/gm,'');
+							
+							eval(js); //the array of voters gets echoed out at the ajax url
 							
 							if(typeof(nggv_js) == 'object') {
 								var msg = '';

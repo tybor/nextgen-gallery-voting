@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 2.1
+Version: 2.2
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -1300,6 +1300,7 @@ class nggVoting {
 				
 				if($_GET['ajaxify'] && $_GET['pid'] == $pid) {
 					$out .= '<!-- NGGV START AJAX RESPONSE -->';
+					$out .= '<script>';
 					$out .= 'var nggv_js = {};';
 					$out .= 'nggv_js.options = {};';
 					$out .= 'nggv_js.saved = '.($votedOrErr === true ? '1' : '0').';';
@@ -1343,7 +1344,7 @@ class nggVoting {
 				}
 				
 				if($_GET['ajaxify'] && $_GET['pid'] == $pid) {
-					$out .= '<!-- NGGV END AJAX RESPONSE -->';
+					$out .= '<script><!-- NGGV END AJAX RESPONSE -->';
 				}
 			}
 			
@@ -1387,6 +1388,7 @@ class nggVoting {
 				
 				if($_GET['ajaxify'] && $_GET['gid'] == $gid) {
 					$out .= '<!-- NGGV START AJAX RESPONSE -->';
+					$out .= '<script>';
 					$out .= 'var nggv_js = {};';
 					$out .= 'nggv_js.options = {};';
 					$out .= 'nggv_js.saved = '.($votedOrErr === true ? '1' : '0').';';
@@ -1429,337 +1431,12 @@ class nggVoting {
 				}
 				
 				if($_GET['ajaxify'] && $_GET['gid'] == $gid) {
-					$out .= '<!-- NGGV END AJAX RESPONSE -->';
+					$out .= '<script><!-- NGGV END AJAX RESPONSE -->';
 				}
 			}
 			
 			return $out;
 		}
-	// }
-}
-
-//Went with '$offical..', just incase someone needs to create another instance of the object and names collide.
-global $officalNggVoting;
-$officalNggVoting = new nggVoting();
-
-function nggv_imageVoteForm($pid) {
-	global $officalNggVoting;
-	return $officalNggVoting->imageVoteForm($pid);
-}
-//}
-?>nner .= $results['likes'] == 1 ? 'Like, ' : 'Likes, ';
-								$bufferInner .= $results['dislikes'].' ';
-								$bufferInner .= $results['dislikes'] == 1 ? 'Dislike' : 'Dislikes';
-								$buffer .= $bufferInner;
-								$buffer .= '</div>';
-								
-								if($_GET['ajaxify']) {
-									$out .= "nggv_js.nggv_container = '".addslashes($bufferInner)."';";
-								}else{
-									$out .= $buffer;
-								}
-							}elseif($options->voting_type == 2) {
-								$results = $this->getImageVotingResults($pid, array("avg"=>true));
-								
-								$buffer = '';
-								$bufferInner = '';
-								
-								$buffer .= '<link rel="stylesheet" href="'.$this->pluginUrl.'css/star_rating.css" type="text/css" media="screen" />';
-								$buffer .= '<div class="nggv_container">';
-								$bufferInner .= '<span class="inline-rating">';
-								$bufferInner .= '<ul class="star-rating">';
-								$bufferInner .= '<li class="current-rating" style="width:'.round($results["avg"]).'%;">Currently '.round($results["avg"] / 20, 1).'/5 Stars.</li>';
-								$bufferInner .= '<li>1</li>';
-								$bufferInner .= '<li>2</li>';
-								$bufferInner .= '<li>3</li>';
-								$bufferInner .= '<li>4</li>';
-								$bufferInner .= '<li>5</li>';
-								$bufferInner .= '</ul>';
-								$bufferInner .= '</span>';
-								$bufferInner .= '<img class="nggv-star-loader" src="'.$this->pluginUrl.'/images/loading.gif" style="display:none;" />';
-								$buffer .= $bufferInner;
-								$buffer .= '</div>';
-								
-								if($_GET['ajaxify']) {
-									$out .= "nggv_js.nggv_container = '".addslashes($bufferInner)."';";
-								}else{
-									$out .= $buffer;
-								}
-							}else{
-								$results = $this->getImageVotingResults($pid, array("avg"=>true));
-								$out .= '<div class="nggv-image-vote-container">';
-								$out .= 'Current Average: '.round(($results["avg"] / 10), 1)." / 10";
-								$out .= '</div>';
-							}
-						}else{ //nope, but thanks for trying
-							$buffer = '';
-							$bufferInner = ''; //buffer the innser, so we can pass it back to the ajax request if enabled
-							
-							$buffer .= '<div class="nggv_container">';
-							$bufferInner .= 'Thank you for casting your vote!';
-							$buffer .= $bufferInner;
-							$buffer .= '</div>';
-							
-							if($_GET['ajaxify']) {
-								$out .= "nggv_js.nggv_container = '".addslashes($bufferInner)."';";
-							}else{
-								$out .= $buffer;
-							}
-						}
-					}
-				}
-			}
-			
-			if($_GET['ajaxify'] && $_GET['ngg-pid'] == $pid) {
-				$out .= "<!-- NGGV END AJAX RESPONSE -->";
-			}
-			
-			return $out;
-		}
-		
-		/**
-		 * Hook: ngg_show_gallery_content
-		 * The function adds the voting form/results to the gallery content
-		 * @param string $out The entire markup of the gallery passed from NextGEN
-		 * @param int $gid The NextGEN Gallery ID
-		 * @author Shaun <shaunalberts@gmail.com>
-		 * @return string The voting form (or results) appended to the original gallery markup given
-		 */
-		function showGallery($out, $gid) {
-			return $out.$this->galleryVoteForm($gid);
-		}
-		
-		/**
-		 * Using self::canVote() display the voting form, or results, or thank you message.  Also calls the nggv_saveVote() once a user casts their vote 
-		 * @param int $gid The NextGEN Gallery ID
-		 * @author Shaun <shaunalberts@gmail.com>
-		 * @return string The voting form, or results, or thank you message markup
-		 */
-		function galleryVoteForm($gid) {
-			if(!is_numeric($gid)) {
-				//trigger_error("Invalid argument 1 for function ".__FUNCTION__."(\$galId).", E_USER_WARNING);
-				return;
-			}
-			
-			$options = $this->getVotingOptions($gid);
-			$out = '';
-			$errOut = '';
-			if($_POST && !$_POST['nggv']['vote_pid_id'] && $_POST["nggv"]["vote_gid_id"] == $gid) { //select box voting
-				if($_POST['nggv']['required_pot_field']) { //seems spammy
-					$errOut .= 'Vote not saved. Spam like activity detected.';
-				}else if(($msg = $this->saveVote(array('gid'=>$gid, 'vote'=>$_POST['nggv']['vote']))) === true) {
-					$saved = true;
-				}else{
-					//$errOut .= "<div class='nggv-error'>";
-					if($msg == 'VOTING NOT ENABLED') {
-						$errOut .= 'This gallery has not turned on voting.';
-					}else if($msg == 'NOT LOGGED IN') {
-						$errOut .= 'You need to be logged in to vote on this gallery.';
-					}else if($msg == 'USER HAS VOTED') {
-						$errOut .= 'You have already voted on this gallery.';
-					}else if($msg == 'IP HAS VOTED') {
-						$errOut .= 'This IP has already voted on this gallery.';
-					}else{
-						$errOut .= 'There was a problem saving your vote, please try again in a few moments.';
-					}
-					//$errOut .= "</div>";
-					//maybe return $errOut here?  user really should only get here if they are "hacking" the dom anyway?
-				}
-			}else if($_GET['gid'] && is_numeric($_GET['r']) && $gid == $_GET["gid"]) { //star or like/dislike, js disabled
-				if($options->voting_type == 3) { //like/dislike
-					if($_GET['r']) {$_GET['r'] = 100;} //like/dislike is all or nothing :)
-				}
-				if(($msg = $this->saveVote(array('gid'=>$gid, 'vote'=>$_GET['r']))) === true) {
-					$saved = true;
-				}else{
-					//$errOut .= "<div class='nggv-error'>";
-					if($msg == 'VOTING NOT ENABLED') {
-						$errOut .= 'This gallery has not turned on voting.';
-					}else if($msg == 'NOT LOGGED IN') {
-						$errOut .= 'You need to be logged in to vote on this gallery.';
-					}else if($msg == 'USER HAS VOTED') {
-						$errOut .= 'You have already voted on this gallery.';
-					}else if($msg == 'IP HAS VOTED') {
-						$errOut .= 'This IP has already voted on this gallery.';
-					}else{
-						$errOut .= 'There was a problem saving your vote, please try again in a few moments.';
-					}
-					//$errOut .= "</div>";
-					//maybe return $errOut here?  user really should only get here if they are "hacking" the dom anyway?
-				}
-			}
-
-			if($_GET["ajaxify"] && $_GET["gid"] == $gid) {
-				$out .= '<!-- NGGV START AJAX RESPONSE -->';
-				$out .= 'var nggv_js = {};';
-				$out .= 'nggv_js.options = {};';
-				foreach ($options as $key=>$val) {
-					$out .= 'nggv_js.options.'.$key.' = "'.$val.'";';
-				}
-				
-				$out .= 'nggv_js.saved = '.($saved ? '1' : '0').';';
-				$out .= 'nggv_js.msg = "'.addslashes($errOut).'";';
-			}else if($_GET['gid'] || $_POST['nggv']){
-				$out .= '<div class="nggv-error">';
-				$out .= $errOut;
-				$out .= '</div>';
-			}
-			
-			if((($canVote = $this->canVote($gid)) === true) && !$saved) { //they can vote, show the form
-				$url = $_SERVER["REQUEST_URI"];
-				$url .= (strpos($url, "?") === false ? "?" : (substr($url, -1) == "&" ? "" : "&")); //make sure the url ends in "?" or "&" correctly
-				//todo, try not duplicate the GET[gid] and GET[r] if clicked 2x
-				
-				if($options->voting_type == 3) { //like / dislike (new from 1.5)
-					$dirName = plugin_basename(dirname(__FILE__));
-					$out .= $this->includeJs($this->pluginUrl.'js/ajaxify-likes.js');	//ajaxify voting, from v1.7
-					
-					$out .= '<div class="nggv_container">';
-					$out .= '<a href="'.$url.'gid='.$gid.'&r=1" class="nggv-link-like"><img src="'.$this->pluginUrl.'images/thumbs_up.png"" alt="Like" /></a>';
-					$out .= '<a href="'.$url.'gid='.$gid.'&r=0" class="nggv-link-dislike"><img src="'.$this->pluginUrl.'images/thumbs_down.png" alt="Dislike" /></a>';
-					$out .= '<img class="nggv-star-loader" src="'.$this->pluginUrl.'images/loading.gif" style="display:none;" />';
-					if($options->user_results) {
-						$results = $this->getVotingResults($gid, array("likes"=>true, "dislikes"=>true));
-						$out .= '<div class="like-results">';
-						$out .= $results['likes'].' ';
-						$out .= $results['likes'] == 1 ? 'Like, ' : 'Likes, ';
-						$out .= $results['dislikes'].' ';
-						$out .= $results['dislikes'] == 1 ? 'Dislike' : 'Dislikes';
-						$out .= '</div>';
-					}
-					$out .= '</div>';
-				}elseif($options->voting_type == 2) { //star
-					$out .= $this->includeJs($this->pluginUrl.'js/ajaxify-stars.js');	//ajaxify voting, from v1.7
-					
-					$results = $this->getVotingResults($gid, array("avg"=>true));
-					$out .= $this->includeCss($this->pluginUrl.'css/star_rating.css');
-					$out .= '<div class="nggv_container">';
-					$out .= '<span class="inline-rating">';
-					$out .= '<ul class="star-rating">';
-					if($options->user_results) { //user can see curent rating
-						$out .= '<li class="current-rating" style="width:'.round($results["avg"]).'%;">Currently '.round($results["avg"] / 20, 1).'/5 Stars.</li>';
-					}
-					$out .= '<li><a href="'.$url.'gid='.$gid.'&r=20" title="1 star out of 5" class="one-star">1</a></li>';
-					$out .= '<li><a href="'.$url.'gid='.$gid.'&r=40" title="2 stars out of 5" class="two-stars">2</a></li>';
-					$out .= '<li><a href="'.$url.'gid='.$gid.'&r=60" title="3 stars out of 5" class="three-stars">3</a></li>';
-					$out .= '<li><a href="'.$url.'gid='.$gid.'&r=80" title="4 stars out of 5" class="four-stars">4</a></li>';
-					$out .= '<li><a href="'.$url.'gid='.$gid.'&r=100" title="5 stars out of 5" class="five-stars">5</a></li>';
-					$out .= '</ul>';
-					$out .= '</span>';
-					$out .= '<img class="nggv-star-loader" src="'.$this->pluginUrl.'images/loading.gif" style="display:none;" />';
-					$out .= '</div>';
-				}else{ //it will be 1, but why not use a catch all :) (drop down)
-					$out .= '<style>';
-					$out .= '.nggv-gallery-pot {display:none;}';
-					$out .= '</style>';
-					$out .= '<div class="nggv_container">';
-					$out .= '<form method="post" action="">';
-					$out .= '<input type="text" class="nggv-gallery-pot" name="nggv[required_pot_field]" value="" />'; //honey pot attempt, not sure how useful this will be. I will consider better options for cash :)
-					$out .= '<input type="hidden" name="nggv[vote_gid_id]" value="'.$gid.'" />';
-					$out .= '<label forid="nggv_rating">Rate this gallery:</label>';
-					$out .= '<select id="nggv_rating" name="nggv[vote]">';
-					$out .= '<option value="0">0</option>';
-					$out .= '<option value="10">1</option>';
-					$out .= '<option value="20">2</option>';
-					$out .= '<option value="30">3</option>';
-					$out .= '<option value="40">4</option>';
-					$out .= '<option value="50">5</option>';
-					$out .= '<option value="60">6</option>';
-					$out .= '<option value="70">7</option>';
-					$out .= '<option value="80">8</option>';
-					$out .= '<option value="90">9</option>';
-					$out .= '<option value="100">10</option>';
-					$out .= '</select>';
-					$out .= '<input type="submit" value="Rate" />';
-					$out .= '</form>';
-					$out .= '</div>';
-				}
-			}else{ //ok, they cant vote.  what next?
-				if($options->enable) { //votings enabled for this gallery, lets find out more...
-					if($canVote === "NOT LOGGED IN") { //the api wants them to login to vote
-						$out .= '<div class="nggv_container">';
-						$out .= 'Only registered users can vote.  Please login to cast your vote';
-						$out .= '</div>';
-					}else if($canVote === "USER HAS VOTED" || $canVote === "IP HAS VOTED" || $canVote === true) { //api tells us they have voted, can they see results? (canVote will be true if they have just voted successfully)
-						if($options->user_results) { //yes! show it
-							if($options->voting_type == 3) {
-								$results = $this->getVotingResults($gid, array("likes"=>true, "dislikes"=>true));
-								
-								$buffer = '';
-								$bufferInner = ''; //buffer the innser, so we can pass it back to the ajax request if enabled
-								
-								$buffer .= '<div class="nggv_container">';
-								$bufferInner .= $results['likes'].' ';
-								$bufferInner .= $results['likes'] == 1 ? 'Like, ' : 'Likes, ';
-								$bufferInner .= $results['dislikes'].' ';
-								$bufferInner .= $results['dislikes'] == 1 ? 'Dislike' : 'Dislikes';
-								$buffer .= $bufferInner;
-								$buffer .= '</div>';
-								
-								if($_GET['ajaxify']) {
-									$out .= "nggv_js.nggv_container = '".addslashes($bufferInner)."';";
-								}else{
-									$out .= $buffer;
-								}
-							}elseif($options->voting_type == 2) {
-								$results = $this->getVotingResults($gid, array("avg"=>true));
-								
-								$buffer = '';
-								$bufferInner = ''; //buffer the innser, so we can pass it back to the ajax request if enabled
-								
-								$buffer .= '<link rel="stylesheet" href="'.$this->pluginUrl.'css/star_rating.css" type="text/css" media="screen" />';
-								$buffer .= '<div class="nggv_container">';
-								$bufferInner .= '<span class="inline-rating">';
-								$bufferInner .= '<ul class="star-rating">';
-								$bufferInner .= '<li class="current-rating" style="width:'.round($results["avg"]).'%;">Currently '.round($results["avg"] / 20, 1).'/5 Stars.</li>';
-								$bufferInner .= '<li>1</li>';
-								$bufferInner .= '<li>2</li>';
-								$bufferInner .= '<li>3</li>';
-								$bufferInner .= '<li>4</li>';
-								$bufferInner .= '<li>5</li>';
-								$bufferInner .= '</ul>';
-								$bufferInner .= '</span>';
-								$bufferInner .= '<img class="nggv-star-loader" src="'.$this->pluginUrl.'images/loading.gif" style="display:none;" />';
-								$buffer .= $bufferInner;
-								$buffer .= '</div>';
-
-								if($_GET['ajaxify']) {
-									$out .= "nggv_js.nggv_container = '".addslashes($bufferInner)."';";
-								}else{
-									$out .= $buffer;
-								}
-							}else{
-								$results = $this->getVotingResults($gid, array("avg"=>true));
-								$out .= '<div class="nggv_container">';
-								$out .= 'Current Average: '.round(($results["avg"] / 10), 1)." / 10";
-								$out .= '</div>';
-							}
-						}else{ //nope, but thanks for trying
-							$buffer = '';
-							$bufferInner = ''; //buffer the innser, so we can pass it back to the ajax request if enabled
-
-							$buffer .= '<div class="nggv_container">';
-							$bufferInner .= 'Thank you for casting your vote!';
-							$buffer .= $bufferInner;
-							$buffer .= '</div>';
-							
-							if($_GET['ajaxify']) {
-								$out .= "nggv_js.nggv_container = '".addslashes($bufferInner)."';";
-							}else{
-								$out .= $buffer;
-							}
-						}
-					}
-				}
-			}
-			
-			if($_GET['ajaxify'] && $_GET['gid'] == $gid) {
-				$out .= "<!-- NGGV END AJAX RESPONSE -->";
-			}
-			
-			return $out;
-		}
-		
 	// }
 }
 
