@@ -4,7 +4,7 @@ Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
 Tested up to: 3.4.2
-Stable tag: 2.1
+Stable tag: 2.2
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
@@ -46,6 +46,10 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Remember to add the tag to the gallery template for image voting to work!
 
 == Changelog ==
+
+= 2.2 =
+* Changed the AJAX JavaScript to play nicely with themes running WordPress' auto formatting.
+* Fixed a bunch of PHP notices.
 
 = 2.1 =
 * Rewrote voting functions to allow for better future compatibility.
@@ -132,11 +136,12 @@ Under the Gallery or Image options, the current average vote show along with how
 
 == Upgrade Notice ==
 
+= 2.2 =
+This update makes AJAX voting play nicely with themes that use WordPress' auto formatting.
+
 = 2.1 =
 Updates to voting engine for future compatibility.
 
 = 2.0 =
 Version 2.0 is a big restructure of the plugin. If you have made customizations or are calling APIs externally, please test thoroughly before updating your live site!
-
-ghly before updating your live site!
 

@@ -1,5 +1,4 @@
 <?php
-
 class nggvGalleryVote {
 	public static function convertErrorCode($err) {
 		$out = '';
@@ -385,5 +384,4 @@ class nggvGalleryVote {
 		return $return;
 	}
 }
-
 ?>

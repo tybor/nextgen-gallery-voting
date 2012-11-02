@@ -161,7 +161,7 @@ class nggVoting {
 		function getImageVotingOptions($pid) {
 			global $wpdb;
 			$opts = $wpdb->get_row('SELECT * FROM '.$wpdb->prefix.'nggv_settings WHERE pid = "'.$wpdb->escape($pid).'"');
-			return is_numeric($pid) && $opts->pid == $pid ? $opts : false;
+			return is_numeric($pid) && isset($opts->pid) && $opts->pid == $pid ? $opts : false;
 		}
 		
 		/**
@@ -178,23 +178,30 @@ class nggVoting {
 			if(is_numeric($pid)) {
 				global $wpdb;
 				
-				if($type["avg"]) {
+				$results = array();
+				
+				if(isset($type["avg"]) && $type["avg"]) {
 					$avg = $wpdb->get_row("SELECT SUM(vote) / COUNT(vote) AS avg FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' GROUP BY pid");
+					$results['avg'] = (isset($avg->avg) && $avg->avg ? $avg->avg : 0);
 				}
-				if($type["list"]) {
+				if(isset($type["list"]) && $type["list"]) {
 					$list = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' ORDER BY dateadded DESC");
+					$results['list'] = $list;
 				}
-				if($type["num"]) {
+				if(isset($type["num"]) && $type["num"]) {
 					$num = $wpdb->get_row("SELECT COUNT(vote) AS num FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' GROUP BY pid");
+					$results['number'] = (isset($num->num) && $num->num ? $num->num : 0);
 				}
-				if($type["likes"]) {
+				if(isset($type["likes"]) && $type["likes"]) {
 					$likes = $wpdb->get_row("SELECT COUNT(vote) AS num FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' AND vote = 100 GROUP BY pid");
+					$results['likes'] = (isset($likes->num) && $likes->num ? $likes->num : 0);
 				}
-				if($type["dislikes"]) {
+				if(isset($type["dislikes"]) && $type["dislikes"]) {
 					$dislikes = $wpdb->get_row("SELECT COUNT(vote) AS num FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' AND vote = 0 GROUP BY pid");
+					$results['dislikes'] = (isset($dislikes->num) && $dislikes->num ? $dislikes->num : 0);
 				}
 
-				return array("avg"=>$avg->avg, "list"=>$list, "number"=>$num->num, "likes"=>($likes->num ? $likes->num : 0), "dislikes"=>($dislikes->num ? $dislikes->num : 0));
+				return $results;
 			}else{
 				return array();
 			}
@@ -226,23 +233,30 @@ class nggVoting {
 			if(is_numeric($gid)) {
 				global $wpdb;
 				
-				if($type['avg']) {
+				$results = array();
+								
+				if(isset($type['avg']) && $type['avg']) {
 					$avg = $wpdb->get_row('SELECT SUM(vote) / COUNT(vote) AS avg FROM '.$wpdb->prefix.'nggv_votes WHERE gid = "'.$wpdb->escape($gid).'" GROUP BY gid');
+					$results['avg'] = (isset($avg->avg) && $avg->avg ? $avg->avg : 0);
 				}
-				if($type['list']) {
+				if(isset($type['list']) && $type['list']) {
 					$list = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'nggv_votes WHERE gid = "'.$wpdb->escape($gid).'" ORDER BY dateadded DESC');
+					$results['list'] = $list;
 				}
-				if($type['num']) {
+				if(isset($type['num']) && $type['num']) {
 					$num = $wpdb->get_row('SELECT COUNT(vote) AS num FROM '.$wpdb->prefix.'nggv_votes WHERE gid = "'.$wpdb->escape($gid).'" GROUP BY gid');
+					$results['number'] = (isset($num->num) && $num->num ? $num->num : 0);
 				}
-				if($type['likes']) {
+				if(isset($type['likes']) && $type['likes']) {
 					$likes = $wpdb->get_row('SELECT COUNT(vote) AS num FROM '.$wpdb->prefix.'nggv_votes WHERE gid = "'.$wpdb->escape($gid).'" AND vote = 100 GROUP BY gid');
+					$results['likes'] = (isset($likes->num) && $likes->num ? $likes->num : 0);
 				}
-				if($type['dislikes']) {
+				if(isset($type['dislikes']) && $type['dislikes']) {
 					$dislikes = $wpdb->get_row('SELECT COUNT(vote) AS num FROM '.$wpdb->prefix.'nggv_votes WHERE gid = "'.$wpdb->escape($gid).'" AND vote = 0 GROUP BY gid');
+					$results['dislikes'] = (isset($dislikes->num) && $dislikes->num ? $dislikes->num : 0);
 				}
 				
-				return array('avg'=>$avg->avg, 'list'=>$list, 'number'=>$num->num, 'likes'=>($likes->num ? $likes->num : 0), 'dislikes'=>($dislikes->num ? $dislikes->num : 0));
+				return $results;
 			}else{
 				return array();
 			}
@@ -472,18 +486,26 @@ class nggVoting {
 		 * @return array("ip"=>string The IP found[might be proxy IP, sorry], "proxy"=>string The proxy IP if the proxy was nice enough to tell us it)
 		 */
 		function getUserIp() {
-			if ($_SERVER['HTTP_X_FORWARDED_FOR']) {
-				if ($_SERVER['HTTP_CLIENT_IP']) {
+			$proxy = '';
+			$ip = '';
+			if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+				if (isset($_SERVER['HTTP_CLIENT_IP']) && $_SERVER['HTTP_CLIENT_IP']) {
 					$proxy = $_SERVER['HTTP_CLIENT_IP'];
 				} else {
-					$proxy = $_SERVER['REMOTE_ADDR'];
+					if(isset($_SERVER['REMOTE_ADDR'])) {
+						$proxy = $_SERVER['REMOTE_ADDR'];
+					}
 				}
 				$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
 			} else {
-				if ($_SERVER['HTTP_CLIENT_IP']) {
-					$ip = $_SERVER['HTTP_CLIENT_IP'];
+				if (isset($_SERVER['HTTP_CLIENT_IP']) && $_SERVER['HTTP_CLIENT_IP']) {
+					if(isset($_SERVER['HTTP_CLIENT_IP'])) {
+						$ip = $_SERVER['HTTP_CLIENT_IP'];
+					}
 				} else {
-					$ip = $_SERVER['REMOTE_ADDR'];
+					if(isset($_SERVER['REMOTE_ADDR'])) {
+						$ip = $_SERVER['REMOTE_ADDR'];
+					}
 				}
 			}
 			
@@ -581,8 +603,8 @@ class nggVoting {
 				$nggv_front_scripts = array();
 			}
 			
-			if(!$nggv_front_scripts[$filename]) {
-				$nggv_front_scripts[$filename] = array('filename'=>$nggv_front_scripts[$filename], 'added'=>true);
+			if(!isset($nggv_front_scripts[$filename])) {
+				$nggv_front_scripts[$filename] = array('filename'=>$filename, 'added'=>true);
 				return '<script type="text/javascript" src="'.$filename.'"></script>';
 			}
 		}
@@ -637,7 +659,7 @@ class nggVoting {
 		 * @return void
 		 */
 		function settings() {
-			if($_GET['action'] == 'admin-vote-info' && $_GET['gid']) {
+			if(isset($_GET['action']) && $_GET['action'] == 'admin-vote-info' && isset($_GET['gid']) && $_GET['gid']) {
 				$options = $this->getVotingOptions($_GET['gid']);
 				$results = $this->getVotingResults($_GET['gid']);
 				
@@ -661,7 +683,7 @@ class nggVoting {
 				
 				$cnt = 0;
 				foreach ((array)$results['list'] as $key=>$val) {
-					$bgcol = i % 2 == 0 ? "" : "#DFDFDF";
+					$bgcol = $cnt % 2 == 0 ? "" : "#DFDFDF";
 					echo '<tr style="background-color:'.$bgcol.'">';
 					echo '<td>'.$val->dateadded.'</td>';
 					if($options->voting_type == 3) {
@@ -674,7 +696,7 @@ class nggVoting {
 					do_action('nggv_gallery_results_detail_vot_col', $options, $val);
 					$user_info = $val->user_id ? get_userdata($val->user_id) : array();
 					
-					echo '<td>'.($user_info->data->display_name ? $user_info->data->display_name : $val->user_id).'</td>';
+					echo '<td>'.(isset($user_info->data->display_name) && $user_info->data->display_name ? $user_info->data->display_name : $val->user_id).'</td>';
 					echo '<td>'.$val->ip.'</td>';
 					echo '</tr>';
 					
@@ -684,7 +706,7 @@ class nggVoting {
 				echo '</table>';
 				
 				exit;
-			}else if($_GET['action'] == 'admin-vote-info' && $_GET['pid']) {
+			}else if(isset($_GET['action']) && $_GET['action'] == 'admin-vote-info' && isset($_GET['pid']) && $_GET['pid']) {
 				$options = $this->getImageVotingOptions($_GET['pid']);
 				$results = $this->getImageVotingResults($_GET['pid']);
 				
@@ -708,7 +730,7 @@ class nggVoting {
 				
 				$cnt = 0;
 				foreach ((array)$results['list'] as $key=>$val) {
-					$bgcol = i % 2 == 0 ? "" : "#DFDFDF";
+					$bgcol = $cnt % 2 == 0 ? "" : "#DFDFDF";
 					echo '<tr style="background-color:'.$bgcol.'">';
 					echo '<td>'.$val->dateadded.'</td>';
 					if($options->voting_type == 3) {
@@ -721,7 +743,7 @@ class nggVoting {
 					do_action('nggv_image_results_detail_vot_col', $options, $val);
 					$user_info = $val->user_id ? get_userdata($val->user_id) : array();
 					
-					echo '<td>'.($user_info->data->display_name ? $user_info->data->display_name : $val->user_id).'</td>';
+					echo '<td>'.(isset($user_info->data->display_name) && $user_info->data->display_name ? $user_info->data->display_name : $val->user_id).'</td>';
 					echo '<td>'.$val->ip.'</td>';
 					echo '</tr>';
 					
@@ -746,33 +768,33 @@ class nggVoting {
 					";
 					}
 				*/
-			}else if($_GET['action'] == 'clear-image-votes' && $_GET['pid']) {
+			}else if(isset($_GET['action']) && $_GET['action'] == 'clear-image-votes' && $_GET['pid']) {
 				$deleted = $this->deleteImageVotes($_GET['pid']);
 				//force a crappy reload. yay... TODO, make this more reliable
 				echo "<script>window.location = 'admin.php?page=nggallery-manage-gallery&mode=edit&gid=".$_GET['gid']."';</script>";
 				exit;
 			}else{
-				if($_POST['nggv']) {
+				if(isset($_POST['nggv']) && $_POST['nggv']) {
 					//Gallery
 					if(get_option('nggv_gallery_enable') === false) { //bool false means does not exists
-						add_option('nggv_gallery_enable', ($_POST['nggv']['gallery']['enable'] ? '1' : '0'), null, 'no');
+						add_option('nggv_gallery_enable', (isset($_POST['nggv']['gallery']['enable']) && $_POST['nggv']['gallery']['enable'] ? '1' : '0'), null, 'no');
 					}else{
-						update_option('nggv_gallery_enable', ($_POST['nggv']['gallery']['enable'] ? '1' : '0'));
+						update_option('nggv_gallery_enable', (isset($_POST['nggv']['gallery']['enable']) && $_POST['nggv']['gallery']['enable'] ? '1' : '0'));
 					}
 					if(get_option('nggv_gallery_force_login') === false) { //bool false means does not exists
-						add_option('nggv_gallery_force_login', ($_POST['nggv']['gallery']['force_login'] ? '1' : '0'), null, 'no');
+						add_option('nggv_gallery_force_login', (isset($_POST['nggv']['gallery']['force_login']) && $_POST['nggv']['gallery']['force_login'] ? '1' : '0'), null, 'no');
 					}else{
-						update_option('nggv_gallery_force_login', ($_POST['nggv']['gallery']['force_login'] ? '1' : '0'));
+						update_option('nggv_gallery_force_login', (isset($_POST['nggv']['gallery']['force_login']) && $_POST['nggv']['gallery']['force_login'] ? '1' : '0'));
 					}
 					if(get_option('nggv_gallery_force_once') === false) { //bool false means does not exists
-						add_option('nggv_gallery_force_once', ($_POST['nggv']['gallery']['force_once'] ? '1' : '0'), null, 'no');
+						add_option('nggv_gallery_force_once', (isset($_POST['nggv']['gallery']['force_once']) && $_POST['nggv']['gallery']['force_once'] ? '1' : '0'), null, 'no');
 					}else{
-						update_option('nggv_gallery_force_once', ($_POST['nggv']['gallery']['force_once'] ? '1' : '0'));
+						update_option('nggv_gallery_force_once', (isset($_POST['nggv']['gallery']['force_once']) && $_POST['nggv']['gallery']['force_once'] ? '1' : '0'));
 					}
 					if(get_option('nggv_gallery_user_results') === false) { //bool false means does not exists
-						add_option('nggv_gallery_user_results', ($_POST['nggv']['gallery']['user_results'] ? '1' : '0'), null, 'no');
+						add_option('nggv_gallery_user_results', (isset($_POST['nggv']['gallery']['user_results']) && $_POST['nggv']['gallery']['user_results'] ? '1' : '0'), null, 'no');
 					}else{
-						update_option('nggv_gallery_user_results', ($_POST['nggv']['gallery']['user_results'] ? '1' : '0'));
+						update_option('nggv_gallery_user_results', (isset($_POST['nggv']['gallery']['user_results']) && $_POST['nggv']['gallery']['user_results'] ? '1' : '0'));
 					}
 					if(get_option('nggv_gallery_voting_type') === false) { //bool false means does not exists
 						add_option('nggv_gallery_voting_type', $_POST['nggv']['gallery']['voting_type'], null, 'no');
@@ -782,24 +804,24 @@ class nggVoting {
 					
 					//Images
 					if(get_option('nggv_image_enable') === false) { //bool false means does not exists
-						add_option('nggv_image_enable', ($_POST['nggv']['image']['enable'] ? '1' : '0'), null, 'no');
+						add_option('nggv_image_enable', (isset($_POST['nggv']['image']['enable']) && $_POST['nggv']['image']['enable'] ? '1' : '0'), null, 'no');
 					}else{
-						update_option('nggv_image_enable', ($_POST['nggv']['image']['enable'] ? '1' : '0'));
+						update_option('nggv_image_enable', (isset($_POST['nggv']['image']['enable']) && $_POST['nggv']['image']['enable'] ? '1' : '0'));
 					}
 					if(get_option('nggv_image_force_login') === false) { //bool false means does not exists
-						add_option('nggv_image_force_login', ($_POST['nggv']['image']['force_login'] ? '1' : '0'), null, 'no');
+						add_option('nggv_image_force_login', (isset($_POST['nggv']['image']['force_login']) && $_POST['nggv']['image']['force_login'] ? '1' : '0'), null, 'no');
 					}else{
-						update_option('nggv_image_force_login', ($_POST['nggv']['image']['force_login'] ? '1' : '0'));
+						update_option('nggv_image_force_login', (isset($_POST['nggv']['image']['force_login']) && $_POST['nggv']['image']['force_login'] ? '1' : '0'));
 					}
 					if(get_option('nggv_image_force_once') === false) { //bool false means does not exists
-						add_option('nggv_image_force_once', ($_POST['nggv']['image']['force_once'] <= 2 ? $_POST['nggv']['image']['force_once'] : '0'), null, 'no');
+						add_option('nggv_image_force_once', (isset($_POST['nggv']['image']['force_once']) && $_POST['nggv']['image']['force_once'] <= 2 ? $_POST['nggv']['image']['force_once'] : '0'), null, 'no');
 					}else{
-						update_option('nggv_image_force_once', ($_POST['nggv']['image']['force_once'] <= 2 ? $_POST['nggv']['image']['force_once'] : '0'));
+						update_option('nggv_image_force_once', (isset($_POST['nggv']['image']['force_once']) && $_POST['nggv']['image']['force_once'] <= 2 ? $_POST['nggv']['image']['force_once'] : '0'));
 					}
 					if(get_option('nggv_image_user_results') === false) { //bool false means does not exists
-						add_option('nggv_image_user_results', ($_POST['nggv']['image']['user_results'] ? '1' : '0'), null, 'no');
+						add_option('nggv_image_user_results', (isset($_POST['nggv']['image']['user_results']) && $_POST['nggv']['image']['user_results'] ? '1' : '0'), null, 'no');
 					}else{
-						update_option('nggv_image_user_results', ($_POST['nggv']['image']['user_results'] ? '1' : '0'));
+						update_option('nggv_image_user_results', (isset($_POST['nggv']['image']['user_results']) && $_POST['nggv']['image']['user_results'] ? '1' : '0'));
 					}
 					if(get_option('nggv_image_voting_type') === false) { //bool false means does not exists
 						add_option('nggv_image_voting_type', $_POST['nggv']['image']['voting_type'], null, 'no');
@@ -915,8 +937,8 @@ class nggVoting {
 			global $nggdb, $wpdb;
 			$gallerylist = $nggdb->find_all_galleries('gid', 'asc', false, 0, 0, false);
 
-			$_GET['nggv']['limit'] = is_numeric($_GET['nggv']['limit']) ? $_GET['nggv']['limit'] : 25;
-			$_GET['nggv']['order'] = $_GET['nggv']['order'] ? $_GET['nggv']['order'] : 'DESC';
+			$_GET['nggv']['limit'] = isset($_GET['nggv']['limit']) && is_numeric($_GET['nggv']['limit']) ? $_GET['nggv']['limit'] : 25;
+			$_GET['nggv']['order'] = isset($_GET['nggv']['order']) && $_GET['nggv']['order'] ? $_GET['nggv']['order'] : 'DESC';
 			
 			$qry = 'SELECT pid, SUM(vote) AS total, AVG(vote) AS avg, MIN(vote) AS min, MAX(vote) AS max, COUNT(vote) AS num'; //yes, no joins for now. performance isnt an issue (i hope...)
 			$qry .= ' FROM '.$wpdb->prefix.'nggv_votes';
@@ -1045,29 +1067,29 @@ class nggVoting {
 				$opts = $this->getImageVotingOptions($pid);
 				
 				echo '<table width="100%">';
-				echo '<tr><td width="1px"><input type="checkbox" name="nggv_image['.$pid.'][enable]" value=1 '.($opts->enable ? 'checked' : '').' /></td><td>Enable for image</td></tr>';
-				echo '<tr><td width="1px"><input type="checkbox" name="nggv_image['.$pid.'][force_login]" value=1 '.($opts->force_login ? 'checked' : '').' /></td><td>Only allow logged in users</td></tr>';
-				echo '<tr><td width="1px"><input type="radio" name="nggv_image['.$pid.'][force_once]" value=3 '.(!$opts->force_once ? 'checked' : '').' /></td><td>Unlimited votes for this image</td></tr>';
-				echo '<tr><td width="1px"><input type="radio" name="nggv_image['.$pid.'][force_once]" value=1 '.($opts->force_once == 1 ? 'checked' : '').' /></td><td>Only allow 1 vote per person for this image</td></tr>';
-				echo '<tr><td width="1px"><input type="radio" name="nggv_image['.$pid.'][force_once]" value=2 '.($opts->force_once == 2 ? 'checked' : '').' /></td><td>Only allow 1 vote per person for this gallery</td></tr>';
-				echo '<tr><td width="1px"><input type="checkbox" name="nggv_image['.$pid.'][user_results]" value=1 '.($opts->user_results ? 'checked' : '').' /></td><td>Allow users to see results</td></tr>';
+				echo '<tr><td width="1px"><input type="checkbox" name="nggv_image['.$pid.'][enable]" value=1 '.(isset($opts->enable) && $opts->enable ? 'checked' : '').' /></td><td>Enable for image</td></tr>';
+				echo '<tr><td width="1px"><input type="checkbox" name="nggv_image['.$pid.'][force_login]" value=1 '.(isset($opts->force_login) && $opts->force_login ? 'checked' : '').' /></td><td>Only allow logged in users</td></tr>';
+				echo '<tr><td width="1px"><input type="radio" name="nggv_image['.$pid.'][force_once]" value=3 '.(empty($opts->force_once) ? 'checked' : '').' /></td><td>Unlimited votes for this image</td></tr>';
+				echo '<tr><td width="1px"><input type="radio" name="nggv_image['.$pid.'][force_once]" value=1 '.(isset($opts->force_once) && $opts->force_once == 1 ? 'checked' : '').' /></td><td>Only allow 1 vote per person for this image</td></tr>';
+				echo '<tr><td width="1px"><input type="radio" name="nggv_image['.$pid.'][force_once]" value=2 '.(isset($opts->force_once) && $opts->force_once == 2 ? 'checked' : '').' /></td><td>Only allow 1 vote per person for this gallery</td></tr>';
+				echo '<tr><td width="1px"><input type="checkbox" name="nggv_image['.$pid.'][user_results]" value=1 '.(isset($opts->user_results) && $opts->user_results ? 'checked' : '').' /></td><td>Allow users to see results</td></tr>';
 				
 				echo '<tr><td colspan=2>';
 				echo 'Rating Type: <select name="nggv_image['.$pid.'][voting_type]">';
 				foreach ((array)$this->types as $key=>$val) {
 					if($val['image']) {
-						echo '<option value="'.$key.'" '.($opts->voting_type == $key ? 'selected="selected"' : '').'>'.$val['name'].'</option>';
+						echo '<option value="'.$key.'" '.(isset($opts->voting_type) && $opts->voting_type == $key ? 'selected="selected"' : '').'>'.$val['name'].'</option>';
 					}
 				}
 				echo '</select>';
 				echo '</td></tr>';
 				echo '</table>';
 				
-				if($opts->voting_type == 2) {
+				if(isset($opts->voting_type) && $opts->voting_type == 2) {
 					$results = $this->getImageVotingResults($pid, array('avg'=>true, 'num'=>true));
 					echo 'Current Avg: '.round(($results['avg'] / 20), 1).' / 5 stars<br />';
 					echo '<a href="#" class="nggv_more_results_image" id="nggv_more_results_image_'.$pid.'">('.($results['number'] ? $results['number'] : '0').' votes cast)</a>';
-				}else if($opts->voting_type == 3) {
+				}else if(isset($opts->voting_type) && $opts->voting_type == 3) {
 					$results = $this->getImageVotingResults($pid, array('likes'=>true, 'dislikes'=>true, 'num'=>true));
 					echo 'Current Votes: ';
 					echo $results['likes'].' ';
@@ -1076,7 +1098,7 @@ class nggVoting {
 					echo $results['dislikes'] == 1 ? 'Dislike' : 'Dislikes';
 					echo '</a><br />';
 					echo '<a href="#" class="nggv_more_results_image" id="nggv_more_results_image_'.$pid.'">('.($results['number'] ? $results['number'] : '0').' votes cast)</a>';
-				}else if($opts->voting_type == 1){
+				}else if(isset($opts->voting_type) && $opts->voting_type == 1){
 					$results = $this->getImageVotingResults($pid, array('avg'=>true, 'num'=>true));
 					echo 'Current Avg: '.round(($results['avg'] / 10), 1).' / 10<br />';
 					echo '<a href="#" class="nggv_more_results_image" id="nggv_more_results_image_'.$pid.'">('.($results['number'] ? $results['number'] : '0').' votes cast)</a>';
@@ -1105,12 +1127,12 @@ class nggVoting {
 		function onGalleryUpdate($gid, $post) {
 			global $wpdb;
 			
-			if($post['nggvg']) { //gallery options
-				$enable = $post['nggvg']['enable'] ? '1' : '0';
-				$login = $post['nggvg']['force_login'] ? '1' : '0';
-				$once = $post['nggvg']['force_once'] ? '1' : '0';
-				$user_results = $post['nggvg']['user_results'] ? '1' : '0';
-				$voting_type = is_numeric($post['nggvg']['voting_type']) ? $post['nggvg']['voting_type'] : '1';
+			if(isset($post['nggvg']) && $post['nggvg']) { //gallery options
+				$enable = isset($post['nggvg']['enable']) && $post['nggvg']['enable'] ? '1' : '0';
+				$login = isset($post['nggvg']['force_login']) && $post['nggvg']['force_login'] ? '1' : '0';
+				$once = isset($post['nggvg']['force_once']) && $post['nggvg']['force_once'] ? '1' : '0';
+				$user_results = isset($post['nggvg']['user_results']) && $post['nggvg']['user_results'] ? '1' : '0';
+				$voting_type = isset($post['nggvg']['voting_type']) && is_numeric($post['nggvg']['voting_type']) ? $post['nggvg']['voting_type'] : '1';
 				
 				//TODO 2.0 Consider APIing these queries, using new wpdb insert/update methods
 				if($this->getVotingOptions($gid)) {
@@ -1120,13 +1142,13 @@ class nggVoting {
 				}
 			}
 			
-			if($post['nggv_image']) { //image options
+			if(isset($post['nggv_image']) && $post['nggv_image']) { //image options
 				foreach ((array)$post['nggv_image'] as $pid=>$val) {
-					$enable = $wpdb->escape($val['enable']) ? '1' : '0';
-					$login = $wpdb->escape($val['force_login']) ? '1' : '0';
-					$once = $wpdb->escape($val['force_once']) <= 2 ? $wpdb->escape($val['force_once']) : '0';
-					$user_results = $wpdb->escape($val['user_results']) ? '1' : '0';
-					$voting_type = is_numeric($val['voting_type']) ? $val['voting_type'] : 1;
+					$enable = isset($val['enable']) && $wpdb->escape($val['enable']) ? '1' : '0';
+					$login = isset($val['force_login']) && $wpdb->escape($val['force_login']) ? '1' : '0';
+					$once = isset($val['force_once']) && $wpdb->escape($val['force_once']) <= 2 ? $wpdb->escape($val['force_once']) : '0';
+					$user_results = isset($val['user_results']) && $wpdb->escape($val['user_results']) ? '1' : '0';
+					$voting_type = isset($val['voting_type']) && is_numeric($val['voting_type']) ? $val['voting_type'] : 1;
 
 					//TODO 2.0 Consider APIing these queries, using new wpdb insert/update methods
 					if($this->getImageVotingOptions($pid)) {
@@ -1175,14 +1197,14 @@ class nggVoting {
 			echo '<tr>';
 			echo '<th>Gallery Voting Options:</th>';
 			echo '<th colspan="3">';
-				echo '<input type="checkbox" name="nggvg[enable]" value=1 '.($options->enable ? 'checked' : '').' /> Enable voting for this gallery<br />';
-				echo '<input type="checkbox" name="nggvg[force_login]" value=1 '.($options->force_login ? 'checked' : '').' /> Only allow logged in users to vote<br />';
-				echo '<input type="checkbox" name="nggvg[force_once]" value=1 '.($options->force_once ? 'checked' : '').' /> Only allow 1 vote per person (IP or userid is used to stop multiple)<br />';
-				echo '<input type="checkbox" name="nggvg[user_results]" value=1 '.($options->user_results ? 'checked' : '').' /> Allow users to see results<br />';
+				echo '<input type="checkbox" name="nggvg[enable]" value=1 '.(isset($options->enable) && $options->enable ? 'checked' : '').' /> Enable voting for this gallery<br />';
+				echo '<input type="checkbox" name="nggvg[force_login]" value=1 '.(isset($options->force_login) && $options->force_login ? 'checked' : '').' /> Only allow logged in users to vote<br />';
+				echo '<input type="checkbox" name="nggvg[force_once]" value=1 '.(isset($options->force_once) && $options->force_once ? 'checked' : '').' /> Only allow 1 vote per person (IP or userid is used to stop multiple)<br />';
+				echo '<input type="checkbox" name="nggvg[user_results]" value=1 '.(isset($options->user_results) && $options->user_results ? 'checked' : '').' /> Allow users to see results<br />';
 				echo 'Rating Type: <select name="nggvg[voting_type]">';
 				foreach ((array)$this->types as $key=>$val) {
 					if($val['gallery']) {
-						echo '<option value="'.$key.'" '.($options->voting_type == $key ? 'selected="selected"' : '').'>'.$val['name'].'</option>';
+						echo '<option value="'.$key.'" '.(isset($options->voting_type) && $options->voting_type == $key ? 'selected="selected"' : '').'>'.$val['name'].'</option>';
 					}
 				}
 				echo '</select><br />';
@@ -1192,17 +1214,17 @@ class nggVoting {
 					var nggv_gid = "'.$gid.'";
 				</script>';
 				echo $this->includeJs($this->pluginUrl.'js/admin_gallery.js');
-				if($options->voting_type == 2) { //star
+				if(isset($options->voting_type) && $options->voting_type == 2) { //star
 					echo 'Currently: '.($results['avg'] ? round($results['avg'] / 20, 2) : '0').' / 5 stars';
 					echo '<a href="#" id="nggv_more_results">('.($results['number'] ? $results['number'] : '0').' votes cast)</a>';
-				}else if($options->voting_type == 3) { //likes/dislikes
+				}else if(isset($options->voting_type) && $options->voting_type == 3) { //likes/dislikes
 					echo ($results['likes'] ? $results['likes'] : '0').' ';
 					echo $results['likes'] == 1 ? 'Like, ' : 'Likes, ';
 					echo ($results['dislikes'] ? $results['dislikes'] : '0').' ';
 					echo $results['dislikes'] == 1 ? 'Dislike' : 'Dislikes';
 					echo ' <a href="#" id="nggv_more_results">('.($results['number'] ? $results['number'] : '0').' votes cast)</a>';
-				}else if($options->voting_type == 1) {
-					echo ($results['avg'] ? round($results['avg'], 2) : '0').' / 10 ';
+				}else if(isset($options->voting_type) && $options->voting_type == 1) {
+					echo ($results['avg'] ? round(($results['avg'] / 10), 2) : '0').' / 10 ';
 					echo '<a href="#" id="nggv_more_results">('.($results['number'] ? $results['number'] : '0').' votes cast)</a>';
 				}
 				echo do_action('nggv_gallery_options_bottom', $options, $results);
@@ -1289,16 +1311,15 @@ class nggVoting {
 			$out = "";
 			$errOut = "";
 			
-			if($options->enable) {
+			if(isset($options->enable) && $options->enable) {
 				$url = $_SERVER['REQUEST_URI'];
 				$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
-				
 				
 				//$votedOrErr = nggvGalleryVote::checkVoteData($this, $options);
 				$voteFuncs = $this->types[$options->voting_type]['imageCallback'];
 				$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
 				
-				if($_GET['ajaxify'] && $_GET['pid'] == $pid) {
+				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['pid']) &&  $_GET['pid'] == $pid) {
 					$out .= '<!-- NGGV START AJAX RESPONSE -->';
 					$out .= '<script>';
 					$out .= 'var nggv_js = {};';
@@ -1326,11 +1347,11 @@ class nggVoting {
 					}
 				}
 				
-				if($_GET['ajaxify']) {
+				if(isset($_GET['ajaxify']) && $_GET['ajaxify']) {
 					$out .= 'nggv_js.voting_form = "'.addslashes($form['form']).'";';
 				}else{
 					$out .= '<div class="nggv_container">';
-						$out .= $form['scripts'];
+					$out .= (isset($form['scripts']) ?  $form['scripts'] : '');
 						$out .= '<input type="hidden" id="ngg-genric-err-msg" value="'.esc_attr(nggVoting::msg('There was a problem saving your vote, please try again in a few moments.')).'" />';
 
 						$out .= '<div class="nggv-error" style="'.(!$votedOrErr || $votedOrErr === true ? 'display:none;' : '').' border: 1px solid red;">';
@@ -1343,7 +1364,7 @@ class nggVoting {
 					$out .= '</div>';
 				}
 				
-				if($_GET['ajaxify'] && $_GET['pid'] == $pid) {
+				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['pid']) && $_GET['pid'] == $pid) {
 					$out .= '<script><!-- NGGV END AJAX RESPONSE -->';
 				}
 			}
@@ -1377,7 +1398,7 @@ class nggVoting {
 			$options = $this->getVotingOptions($gid);
 			$out = '';
 			
-			if($options->enable) {
+			if(isset($options->enable) && $options->enable) {
 				$url = $_SERVER['REQUEST_URI'];
 				$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
 				
@@ -1386,7 +1407,7 @@ class nggVoting {
 				$voteFuncs = $this->types[$options->voting_type]['galleryCallback'];
 				$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
 				
-				if($_GET['ajaxify'] && $_GET['gid'] == $gid) {
+				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['gid']) && $_GET['gid'] == $gid) {
 					$out .= '<!-- NGGV START AJAX RESPONSE -->';
 					$out .= '<script>';
 					$out .= 'var nggv_js = {};';
@@ -1414,7 +1435,7 @@ class nggVoting {
 					}
 				}
 				
-				if($_GET['ajaxify']) {
+				if(isset($_GET['ajaxify']) && $_GET['ajaxify']) {
 					$out .= 'nggv_js.voting_form = "'.addslashes($form['form']).'";';
 				}else{
 					$out .= '<div class="nggv_container">';
@@ -1430,7 +1451,7 @@ class nggVoting {
 					$out .= '</div>';
 				}
 				
-				if($_GET['ajaxify'] && $_GET['gid'] == $gid) {
+				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['gid']) && $_GET['gid'] == $gid) {
 					$out .= '<script><!-- NGGV END AJAX RESPONSE -->';
 				}
 			}
