@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: NextGEN Gallery Voting
-Plugin URI: http://shauno.co.za/wordpress-nextgen-gallery-voting/
+Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
 Version: 2.2
 Author: Shaun Alberts
