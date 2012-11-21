@@ -32,14 +32,14 @@ PLEASE NOTE 2: The `/nextgen-gallery/view/gallery.php` template is used with the
 = Can I make the voting look more like my theme =
 This plugin intentionally adds very little styling to the voting forms. It does provide plenty of classes and ids though, allowing you to style it to fit in with your site.
 
-= I update NextGEN GAllery, and voting has disappeared! =
+= I updated NextGEN Gallery, and voting has disappeared! =
 When you update NextGEN Gallery, it overwrites the templates in its `/view/` directory. This means you need to re-add the tag. If you want to prevent the overwriting in the future, you can move the templates to `wp-content/themes/[YOUR-THEME]/nggallery/`.
 
 = How do I see the voting results =
 Under the Gallery or Image options, the current average vote shows along with how many votes have been cast.  Click on the number of votes cast to show more info on those votes.
 
 = Known issues =
-* If you put the image voting tag (`<?php echo nggv_imageVoteForm($image->pid); ?>`) inside the `<a>` wrapping them image in a template, you are going to experience problems. This is because the voting process uses its own `<a>` tags too.
+* If you put the image voting tag (`<?php echo nggv_imageVoteForm($image->pid); ?>`) inside the `<a>` wrapping the image, you are going to experience problems. This is because the voting process uses its own `<a>` tags too.
 * If you have the 'Show ImageBrowser' setting under `Gallery->Options->Gallery` ticked, it will conflict with the voting process. This is because both ImageBrowser, and the voting use the GET variable `pid`. I will change this in a future release for better compatibilty with ImageBrowser.
 
 == Installation ==
