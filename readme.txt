@@ -30,7 +30,7 @@ PLEASE NOTE: Do not put the tag inside the `<a>` tag that wraps the image in som
 PLEASE NOTE 2: The `/nextgen-gallery/view/gallery.php` template is used with the shortcode `[nggallery id=x]`. If you change the shortcode or specify a different template, you need to add the tag to the template you specify.
 
 = Can I make the voting look more like my theme =
-This plugin intentionally adds very little styling to the voting forms. It does provded plenty of classes and ids though, allowing you to style it to fit in with your site.
+This plugin intentionally adds very little styling to the voting forms. It does provide plenty of classes and ids though, allowing you to style it to fit in with your site.
 
 = I update NextGEN GAllery, and voting has disappeared! =
 When you update NextGEN Gallery, it overwrites the templates in its `/view/` directory. This means you need to re-add the tag. If you want to prevent the overwriting in the future, you can move the templates to `wp-content/themes/[YOUR-THEME]/nggallery/`.
