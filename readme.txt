@@ -10,7 +10,8 @@ This plugin adds the ability for users to vote on NextGEN Galleries and Images. 
 
 == Description ==
 
-This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
+This plugin adds the ability for users to vote on NextGEN Galleries and Images. You can choose between star ratings, a drop down rating between 1-10, and a like/dislike (thumbs up/thumbs down) voting types.
+You can limit if a user needs to logged in to vote, if they can see results, and how many times they can vote on specific images.
 
 NGG Voting was inspired by a request from [Troy Schlegel of Schlegel Photography](http://www.schlegelphotography.com/).  Please read the FAQ for more info on how it works.
 
@@ -20,23 +21,26 @@ Please read the FAQ, as you are required to add a tag to templates for certain f
 
 == Frequently Asked Questions ==
 
-= In a nutshell, what is this? =
-This plugin adds options that can allow your users to vote on (more like rate) your Galleries and Images. There are options to limit which Gallery/Image to allow voting on, if the user needs to be registered and logged in, if they can vote more that once, and if they can see the current results.
-
-= How do I add the voting form? =
-For Galleries it's easy.  You just need to enable voting on the gallery, and the voting form will automatically be appended to the gallery.  There is some basic styling, but the markup has got plenty of classes and ids that you should easily be able to hook into with your own stylesheets to make suit your site.
-
-= How do I make the voting form appear for images? =
+= How do I make the voting form show on my site? =
+For galleries it's easy.  You just need to enable voting on the gallery, and the voting form will automatically be appended after the gallery.
 For images there's an extra step.  First you need to enable voing on the specific images you want.  Then you need to add a tag to the gallery template from NextGEN Gallery.  I'm going to use NextGEN version 1.9.6 to as the example, but it should be pretty much the same for all versions:
-Between line 38 and line 53 in `/nextgen-gallery/view/gallery.php` is the loop that shows each image in a specific gallery.  You need to add the following tag anywhere in that loop: `<?php echo nggv_imageVoteForm($image->pid); ?>`.
+Between line 38 and line 53 in `/nextgen-gallery/view/gallery.php` is the loop that shows each image in a specific gallery.  You need to add the following tag in that loop: `<?php echo nggv_imageVoteForm($image->pid); ?>`.
 That will output the vote form where you put it.  Personally I like to place it on a new line after the close `<a>` tag (new line created 45)
-Do not put inside the `<a>` tag that wraps the image in some of the templates, or the link will conflict with the voting process.
+PLEASE NOTE: Do not put the tag inside the `<a>` tag that wraps the image in some of the templates, or the link will conflict with the voting process.
+PLEASE NOTE 2: The `/nextgen-gallery/view/gallery.php` template is used with the shortcode `[nggallery id=x]`. If you change the shortcode or specify a different template, you need to add the tag to the template you specify.
 
-= Ew, that looks hideous =
-This plugin intentionally adds very little styling to the voting forms. It does provded plenty of ids and classes allowing you to style it to fit in with your site.
+= Can I make the voting look more like my theme =
+This plugin intentionally adds very little styling to the voting forms. It does provded plenty of classes and ids though, allowing you to style it to fit in with your site.
 
-= Where are the results =
-Under the Gallery or Image options, the current average vote show along with how many votes have been cast.  Click on the number of votes cast to show more info on those votes.
+= I update NextGEN GAllery, and voting has disappeared! =
+When you update NextGEN Gallery, it overwrites the templates in its `/view/` directory. This means you need to re-add the tag. If you want to prevent the overwriting in the future, you can move the templates to `wp-content/themes/[YOUR-THEME]/nggallery/`.
+
+= How do I see the voting results =
+Under the Gallery or Image options, the current average vote shows along with how many votes have been cast.  Click on the number of votes cast to show more info on those votes.
+
+= Known issues =
+* If you put the image voting tag (`<?php echo nggv_imageVoteForm($image->pid); ?>`) inside the `<a>` wrapping them image in a template, you are going to experience problems. This is because the voting process uses its own `<a>` tags too.
+* If you have the 'Show ImageBrowser' setting under `Gallery->Options->Gallery` ticked, it will conflict with the voting process. This is because both ImageBrowser, and the voting use the GET variable `pid`. I will change this in a future release for better compatibilty with ImageBrowser.
 
 == Installation ==
 
