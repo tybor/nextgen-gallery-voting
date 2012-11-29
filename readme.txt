@@ -39,8 +39,9 @@ When you update NextGEN Gallery, it overwrites the templates in its `/view/` dir
 Under the Gallery or Image options, the current average vote shows along with how many votes have been cast.  Click on the number of votes cast to show more info on those votes.
 
 = Known issues =
-* If you put the image voting tag (`<?php echo nggv_imageVoteForm($image->pid); ?>`) inside the `<a>` wrapping them image in a template, you are going to experience problems. This is because the voting process uses its own `<a>` tags too.
+* If you put the image voting tag (`<?php echo nggv_imageVoteForm($image->pid); ?>`) inside the `<a>` wrapping the image, you are going to experience problems. This is because the voting process uses its own `<a>` tags too.
 * If you have the 'Show ImageBrowser' setting under `Gallery->Options->Gallery` ticked, it will conflict with the voting process. This is because both ImageBrowser, and the voting use the GET variable `pid`. I will change this in a future release for better compatibilty with ImageBrowser.
+* There is a conflict with a NGG bug that breaks voting if you are using the `[nggtags]` shortcode. For nowm, you can work around the bug by adding the voting tag (`<?php echo nggv_imageVoteForm($image->pid); ?>`) to the `/nextgen-gallery/view/imagebrowser.php` template.
 
 == Installation ==
 
