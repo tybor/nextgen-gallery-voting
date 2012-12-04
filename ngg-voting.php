@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
 Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 2.2
+Version: 2.2.1
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -84,7 +84,7 @@ class nggVoting {
 		
 		register_activation_hook(__FILE__, array(&$this, 'dbUpgrade'));
 		
-		$this->adminUrl = get_bloginfo('url').'/wp-admin/admin.php?page='; //not sure this is ideal? TODO, research better way of getting pre-slug admin page URL
+		$this->adminUrl = get_admin_url().'admin.php?page='; //not sure this is ideal? TODO, research better way of getting pre-slug admin page URL
 		//use of dirname(__FILE__) as __DIR__ is only available from 5.3
 		$this->slug = basename(dirname(__FILE__));
 		
@@ -1312,6 +1312,13 @@ class nggVoting {
 			$errOut = "";
 			
 			if(isset($options->enable) && $options->enable) {
+				/* i needed to change GET['pid'] to GET['nggv_pid'] to stop a conflict with NGG itself
+				Unfortunately that means NGG V Premium v1 users will break. This is a hack fix to keep them
+				working as normal until they upgrade */
+				if(!isset($_GET['nggv_pid']) && isset($_GET['pid']) && isset($_GET['r'])) { //no new nggv_pid, but old pid and rating
+					$_GET['nggv_pid'] = $_GET['pid'];
+				}
+				
 				$url = $_SERVER['REQUEST_URI'];
 				$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
 				
@@ -1319,7 +1326,7 @@ class nggVoting {
 				$voteFuncs = $this->types[$options->voting_type]['imageCallback'];
 				$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
 				
-				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['pid']) &&  $_GET['pid'] == $pid) {
+				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['nggv_pid']) &&  $_GET['nggv_pid'] == $pid) {
 					$out .= '<!-- NGGV START AJAX RESPONSE -->';
 					$out .= '<script>';
 					$out .= 'var nggv_js = {};';
@@ -1364,7 +1371,7 @@ class nggVoting {
 					$out .= '</div>';
 				}
 				
-				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['pid']) && $_GET['pid'] == $pid) {
+				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['nggv_pid']) && $_GET['nggv_pid'] == $pid) {
 					$out .= '<script><!-- NGGV END AJAX RESPONSE -->';
 				}
 			}
@@ -1399,6 +1406,14 @@ class nggVoting {
 			$out = '';
 			
 			if(isset($options->enable) && $options->enable) {
+				/* i needed to change GET['pid'] to GET['nggv_pid'] to stop a conflict with NGG itself.
+				I figured i would change the gallery (gid) while i was at it :)
+				Unfortunately that means NGG V Premium v1 users will break. This is a hack fix to keep them
+				working as normal until they upgrade */
+				if(!isset($_GET['nggv_gid']) && isset($_GET['gid']) && isset($_GET['r'])) { //no new nggv_gid, but old gid and rating
+					$_GET['nggv_gid'] = $_GET['gid'];
+				}
+				
 				$url = $_SERVER['REQUEST_URI'];
 				$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
 				
@@ -1407,7 +1422,7 @@ class nggVoting {
 				$voteFuncs = $this->types[$options->voting_type]['galleryCallback'];
 				$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
 				
-				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['gid']) && $_GET['gid'] == $gid) {
+				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['nggv_gid']) && $_GET['nggv_gid'] == $gid) {
 					$out .= '<!-- NGGV START AJAX RESPONSE -->';
 					$out .= '<script>';
 					$out .= 'var nggv_js = {};';
@@ -1451,7 +1466,7 @@ class nggVoting {
 					$out .= '</div>';
 				}
 				
-				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['gid']) && $_GET['gid'] == $gid) {
+				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['nggv_gid']) && $_GET['nggv_gid'] == $gid) {
 					$out .= '<script><!-- NGGV END AJAX RESPONSE -->';
 				}
 			}
