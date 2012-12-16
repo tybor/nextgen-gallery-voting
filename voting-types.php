@@ -28,7 +28,7 @@ class nggvGalleryVote {
 			$return['form'] .= '<form method="post" action="">';
 			$return['form'] .= '<input type="text" class="nggv-gallery-pot" name="nggv[required_pot_field]" value="" />'; //honey pot attempt, not sure how useful this will be. I will consider better options for cash :)
 			$return['form'] .= '<input type="hidden" name="nggv[vote_gid_id]" value="'.$options->gid.'" />';
-			$return['form'] .= '<label forid="nggv_rating">Rate this gallery:</label>';
+			$return['form'] .= '<label forid="nggv_rating">'.nggVoting::msg('Rate this gallery:').'</label>';
 			$return['form'] .= '<select id="nggv_rating" name="nggv[vote]">';
 			$return['form'] .= '<option value="0">0</option>';
 			$return['form'] .= '<option value="10">1</option>';
@@ -86,7 +86,7 @@ class nggvGalleryVote {
 			$return['form'] .= '<form method="post" action="">';
 			$return['form'] .= '<input type="text" class="nggv-gallery-pot" name="nggv[required_pot_field]" value="" />'; //honey pot attempt, not sure how useful this will be. I will consider better options for cash :)
 			$return['form'] .= '<input type="hidden" name="nggv[vote_pid_id]" value="'.$options->pid.'" />';
-			$return['form'] .= '<label forid="nggv_rating">Rate this gallery:</label>';
+			$return['form'] .= '<label forid="nggv_rating">'.nggVoting::msg('Rate this image:').'</label>';
 			$return['form'] .= '<select id="nggv_rating" name="nggv[vote]">';
 			$return['form'] .= '<option value="0">0</option>';
 			$return['form'] .= '<option value="10">1</option>';
