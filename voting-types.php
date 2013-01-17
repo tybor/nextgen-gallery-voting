@@ -86,6 +86,7 @@ class nggvGalleryVote {
 			$return['form'] .= '<form method="post" action="">';
 			$return['form'] .= '<input type="text" class="nggv-gallery-pot" name="nggv[required_pot_field]" value="" />'; //honey pot attempt, not sure how useful this will be. I will consider better options for cash :)
 			$return['form'] .= '<input type="hidden" name="nggv[vote_pid_id]" value="'.$options->pid.'" />';
+			$return['form'] .= '<input type="hidden" name="nggv[vote_criteria_id]" value="'.$options->criteria_id.'" />';
 			$return['form'] .= '<label forid="nggv_rating">'.nggVoting::msg('Rate this image:').'</label>';
 			$return['form'] .= '<select id="nggv_rating" name="nggv[vote]">';
 			$return['form'] .= '<option value="0">0</option>';
@@ -109,11 +110,15 @@ class nggvGalleryVote {
 	
 	public static function imageCatchVoteDropDown($nggv, $options) {
 		$out = '';
+		if(!isset($_POST['nggv']['vote_criteria_id'])) {
+			$_POST['nggv']['vote_criteria_id'] = 0;
+		}
+		
 		if($options->voting_type == 1) {
-			if($_POST && $_POST['nggv']['vote_pid_id'] && $_POST['nggv']['vote_pid_id'] == $options->pid) {
+			if($_POST && $_POST['nggv']['vote_pid_id'] && $_POST['nggv']['vote_pid_id'] == $options->pid && $_POST['nggv']['vote_criteria_id'] == $options->criteria_id) {
 				if($_POST['nggv']['required_pot_field']) { //seems spammy
 					$out .= nggVoting::msg('Vote not saved. Spam like activity detected.');
-				}else if(($msg = $nggv->saveVoteImage(array('pid'=>$options->pid, 'vote'=>$_POST['nggv']['vote']))) === true) {
+				}else if(($msg = $nggv->saveVoteImage(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id, 'vote'=>$_POST['nggv']['vote']))) === true) {
 					return true;
 				}else{
 					$out .= self::convertErrorCode($msg);
@@ -127,7 +132,7 @@ class nggvGalleryVote {
 	public static function imageVoteResultsDropDown($nggv, $options) {
 		$return = array();
 		if($options->voting_type == 1) {
-			$results = $nggv->getImageVotingResults($options->pid, array('avg'=>true));
+			$results = $nggv->getImageVotingResults(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id), array('avg'=>true));
 			$return['form'] .= nggVoting::msg('Current Average:').' '.round(($results['avg'] / 10), 1).' / 10';
 		}
 		return $return;
@@ -203,12 +208,12 @@ class nggvGalleryVote {
 			$url = $_SERVER['REQUEST_URI'];
 			$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
 			
-			$return['form'] .= '<a href="'.$url.'nggv_pid='.$options->pid.'&r=1" class="nggv-link-like"><img src="'.$nggv->pluginUrl.'images/thumbs_up.png" alt="Like" /></a>';
-			$return['form'] .= '<a href="'.$url.'nggv_pid='.$options->pid.'&r=0" class="nggv-link-dislike"><img src="'.$nggv->pluginUrl.'images/thumbs_down.png" alt="Dislike" /></a>';
+			$return['form'] .= '<a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=1" class="nggv-link-like"><img src="'.$nggv->pluginUrl.'images/thumbs_up.png" alt="Like" /></a>';
+			$return['form'] .= '<a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=0" class="nggv-link-dislike"><img src="'.$nggv->pluginUrl.'images/thumbs_down.png" alt="Dislike" /></a>';
 			$return['form'] .= '<img class="nggv-star-loader" src="'.$nggv->pluginUrl.'images/loading.gif" style="display:none;" />';
 			
 			if($options->user_results) {
-				$results = $nggv->getImageVotingResults($options->pid, array('likes'=>true, 'dislikes'=>true));
+				$results = $nggv->getImageVotingResults(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id), array('likes'=>true, 'dislikes'=>true));
 				$return['form'] .= '<div class="like-results">';
 				$return['form'] .= $results['likes'].' ';
 				$return['form'] .= $results['likes'] == 1 ? nggVoting::msg('Like') : nggVoting::msg('Likes');
@@ -223,10 +228,13 @@ class nggvGalleryVote {
 	
 	public static function imageCatchVoteDisLike($nggv, $options) {
 		$out = '';
-		if($options->voting_type == 3 && $_GET['nggv_pid'] && $options->pid == $_GET['nggv_pid'] && is_numeric($_GET['r'])) {
+		if(!isset($_GET['nggv_criteria_id'])) {
+			$_GET['nggv_criteria_id'] = 0;
+		}
+		if($options->voting_type == 3 && $_GET['nggv_pid'] && $options->pid == $_GET['nggv_pid'] && $_GET['nggv_criteria_id'] == $options->criteria_id && is_numeric($_GET['r'])) {
 			if($_GET['r']) {$_GET['r'] = 100;} //like/dislike is all or nothing :)
 			
-			if(($msg = $nggv->saveVoteImage(array('pid'=>$options->pid, 'vote'=>$_GET['r']))) === true) {
+			if(($msg = $nggv->saveVoteImage(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id, 'vote'=>$_GET['r']))) === true) {
 				return true;
 			}else{
 				$out .= self::convertErrorCode($msg);
@@ -241,7 +249,7 @@ class nggvGalleryVote {
 		$return = array();
 		
 		if($options->voting_type == 3) {
-			$results = $nggv->getImageVotingResults($options->pid, array('likes'=>true, 'dislikes'=>true));
+			$results = $nggv->getImageVotingResults(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id), array('likes'=>true, 'dislikes'=>true));
 			
 			$return['form'] .= $results['likes'].' ';
 			$return['form'] .= $results['likes'] == 1 ? nggVoting::msg('Like') : nggVoting::msg('Likes');
@@ -328,18 +336,18 @@ class nggvGalleryVote {
 			$return['form'] .= '<span class="inline-rating">';
 			$return['form'] .= '<ul class="star-rating">';
 			if($options->user_results) { //user can see curent rating
-				$results = $nggv->getImageVotingResults($options->pid, array('avg'=>true));
+				$results = $nggv->getImageVotingResults(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id), array('avg'=>true));
 				$return['form'] .= '<li class="current-rating" style="width:'.round($results['avg']).'%;">Currently '.round($results['avg'] / 20, 1).'/5 Stars.</li>';
 			}
 			
 			$url = $_SERVER['REQUEST_URI'];
 			$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
-
-			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&r=20" title="1 star out of 5" class="one-star">1</a></li>';
-			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&r=40" title="2 stars out of 5" class="two-stars">2</a></li>';
-			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&r=60" title="3 stars out of 5" class="three-stars">3</a></li>';
-			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&r=80" title="4 stars out of 5" class="four-stars">4</a></li>';
-			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&r=100" title="5 stars out of 5" class="five-stars">5</a></li>';
+			
+			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=20" title="1 star out of 5" class="one-star">1</a></li>';
+			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=40" title="2 stars out of 5" class="two-stars">2</a></li>';
+			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=60" title="3 stars out of 5" class="three-stars">3</a></li>';
+			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=80" title="4 stars out of 5" class="four-stars">4</a></li>';
+			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=100" title="5 stars out of 5" class="five-stars">5</a></li>';
 			$return['form'] .= '</ul>';
 			$return['form'] .= '</span>';
 			$return['form'] .= '<img class="nggv-star-loader" src="'.$nggv->pluginUrl.'images/loading.gif" style="display:none;" />';
@@ -350,8 +358,11 @@ class nggvGalleryVote {
 	
 	public static function imageCatchVoteStar($nggv, $options) {
 		$out = '';
-		if($options->voting_type == 2 && $_GET['nggv_pid'] && $options->pid == $_GET['nggv_pid'] && is_numeric($_GET['r'])) {
-			if(($msg = $nggv->saveVoteImage(array('pid'=>$options->pid, 'vote'=>$_GET['r']))) === true) {
+		if(!isset($_GET['nggv_criteria_id'])) {
+			$_GET['nggv_criteria_id'] = 0;
+		}
+		if($options->voting_type == 2 && $_GET['nggv_pid'] && $options->pid == $_GET['nggv_pid'] && $options->criteria_id == $_GET['nggv_criteria_id'] && is_numeric($_GET['r'])) {
+			if(($msg = $nggv->saveVoteImage(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id, 'vote'=>$_GET['r']))) === true) {
 				return true;
 			}else{
 				$out .= self::convertErrorCode($msg);
@@ -364,7 +375,7 @@ class nggvGalleryVote {
 	public static function imageVoteResultsStar($nggv, $options) {
 		$return = array();
 		if($options->voting_type == 2) {
-			$results = $nggv->getImageVotingResults($options->pid, array('avg'=>true));
+			$results = $nggv->getImageVotingResults(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id), array('avg'=>true));
 			
 			$return['scripts'] .= $nggv->includeJs($nggv->pluginUrl.'js/ajaxify-stars.js');	//ajaxify voting, from v1.7
 			$return['scripts'] .= $nggv->includeCss($nggv->pluginUrl.'css/star_rating.css');
