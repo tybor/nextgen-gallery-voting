@@ -20,10 +20,11 @@ jQuery(document).ready(function() {
 		});
 		
 		jQuery("a.nggv_more_results_image").click(function(e) { //button click to open more detail on the voting
+				var criteriaId = parseInt(jQuery(this).data('criteria_id'));
 				var pid = parseInt(this.id.substr(24));
 				tb_show("", "#TB_inline?width=640&height=300&inlineId=nggvShowList&modal=true", false); //thick box seems to be included, so lets use it :)
 				
-				jQuery.get(nggv_ajax_url, 'pid='+pid, function(data, status) {
+				jQuery.get(nggv_ajax_url, 'pid='+pid+'&criteria_id='+criteriaId, function(data, status) {
 						if(status == 'success') {
 							jQuery("div#nggvShowList_content").html(data);
 						}else{
@@ -40,5 +41,19 @@ jQuery(document).ready(function() {
 					e.preventDefault();
 					return false;
 				}
+		});
+		
+		jQuery('.nggv-tab-list li a').click(function(e) {
+				var i = jQuery(this).parent().index();
+				var parent = jQuery(this).parents('.nggv-voting-options'); //get this block to work with
+				
+				jQuery(parent).find('.nggv-tab-list li').removeClass('active');
+				jQuery(jQuery(parent).find('.nggv-tab-list li')[i]).addClass('active');
+				
+				jQuery(parent).find('.nggv-tab-content').removeClass('active');
+				jQuery(jQuery(parent).find('.nggv-tab-content')[i]).addClass('active');
+
+				e.preventDefault();
+				return false;
 		});
 });

@@ -2,13 +2,13 @@
 /*
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
-Description: This plugin allows users to add user voting to NextGEN Gallery Images
-Version: 2.2.2
+Description: This plugin allows you to add user voting and rating to NextGEN Galleries and Images
+Version: 2.3
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
 /*
-Copyright 2012  Shaun Alberts  (email : shaunalberts@gmail.com)
+Copyright 2013  Shaun Alberts  (email : shaunalberts@gmail.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -623,7 +623,6 @@ class nggVoting {
 			}else{
 				return false;
 			}
-			
 		}
 	
 		/**
@@ -1002,20 +1001,31 @@ class nggVoting {
 		 */
 		function topVoted() {
 			global $nggdb, $wpdb;
-			$gallerylist = $nggdb->find_all_galleries('gid', 'asc', false, 0, 0, false);
+			$gallerylist = $nggdb->find_all_galleries('gid', 'asc');
 
 			$_GET['nggv']['limit'] = isset($_GET['nggv']['limit']) && is_numeric($_GET['nggv']['limit']) ? $_GET['nggv']['limit'] : 25;
 			$_GET['nggv']['order'] = isset($_GET['nggv']['order']) && $_GET['nggv']['order'] ? $_GET['nggv']['order'] : 'DESC';
 			
-			$qry = 'SELECT pid, SUM(vote) AS total, AVG(vote) AS avg, MIN(vote) AS min, MAX(vote) AS max, COUNT(vote) AS num'; //yes, no joins for now. performance isnt an issue (i hope...)
-			$qry .= ' FROM '.$wpdb->prefix.'nggv_votes';
+			$qry = 'SELECT ';
+			$qry .= 'v.pid, v.criteria_id, SUM(v.vote) AS total, AVG(v.vote) AS avg, MIN(v.vote) AS min, MAX(v.vote) AS max, COUNT(v.vote) AS num';
+			$qry .= ', p.*';
+			$qry .= ' FROM '.$wpdb->prefix.'nggv_votes AS v LEFT JOIN '.$wpdb->prefix.'ngg_pictures AS p ON v.pid = p.pid';
 			$qry .= ' WHERE';
-			$qry .= ' pid > 0';
-			$qry .= ' GROUP BY pid';
+			$qry .= ' v.pid > 0';
+			if(isset($_GET['nggv']['gallery']) && $_GET['nggv']['gallery']) {
+				$qry .= ' AND p.galleryid = '.$wpdb->escape($_GET['nggv']['gallery']);
+			}
+			$qry .= ' GROUP BY v.pid, v.criteria_id';
 			$qry .= ' ORDER BY avg '.$_GET['nggv']['order'];
-			$qry .= ' LIMIT 0, '.$_GET['nggv']['limit'];
+			if($_GET['nggv']['limit']) {
+				$qry .= ' LIMIT 0, '.$_GET['nggv']['limit'];
+			}
 			
 			$list = $wpdb->get_results($qry);
+			$list = apply_filters('nggv_top_voted_results', $list);
+			
+			if (isset($_GET['noheader'])) {require_once(ABSPATH.'wp-admin/admin-header.php');} //replace the header if we need output...
+
 			?>
 			<div class="wrap">
 				<h2>Top Rated Images</h2>
@@ -1023,11 +1033,12 @@ class nggVoting {
 				<div id="poststuff">
 					<form id="" method="GET" action="" accept-charset="utf-8">
 						<input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" />
+						<input type="hidden" name="noheader" value="1" />
 						<div class="postbox">
 							<h3>Filter</h3>
 							<table class="form-table">
 								<tr>
-									<th>Limit</th>
+									<th>Limit <br /><small>(set to 0 for no limit)</small></th>
 									<td>
 										<input type="text" name="nggv[limit]" value="<?php echo $_GET['nggv']['limit'] ?>" />
 									</td>
@@ -1041,9 +1052,27 @@ class nggVoting {
 									</td>
 								</tr>
 								
+								<?php
+								$selGallery = isset($_GET['nggv']['gallery']) ? $_GET['nggv']['gallery'] : 0;
+								?>
 								<tr>
-									<td colspan=4>
-										<input class="button-primary" type="submit" value="Filter Images" />
+									<th>Gallery</th>
+									<td>
+									<select name="nggv[gallery]">
+											<option value="0">All</option>
+											<?php foreach ((array)$gallerylist as $key=>$val) { ?>
+												<option value="<?php echo $val->gid ?>" <?php echo $val->gid == $selGallery ? 'selected="selected"' : '' ?>><?php echo $val->title ?></option>
+											<?php } ?>
+										</select>
+									</td>
+								</tr>
+								
+								<tr>
+									<td colspan=2>
+										<input class="button-primary" name="nggv[button_filter]" type="submit" value="Filter Images" />
+									</td>
+									<td colspan=2>
+										<?php do_action('nggv_top_voted_form_footer', $_GET); ?>
 									</td>
 								</tr>
 							</table>
@@ -1051,7 +1080,7 @@ class nggVoting {
 					</form>
 				</div>
 
-				<?php if($list) { ?>
+				<?php if($list && !class_exists('nggVotingPremium')) { ?>
 					<div class="updated below-h2">
 						Wow, check all those awesome people voing for your images! Have you returned the favour by <a target="_blank" href="http://wordpress.org/extend/plugins/nextgen-gallery-voting/">rating NGG Voting</a>?<br />
 						Maybe you're even more awesomer and might consider <a target="_blank" href="http://shauno.co.za/donate/">donating</a>?
@@ -1062,6 +1091,12 @@ class nggVoting {
   				<thead>
   					<tr>
   						<th style="width:30px;">pid</th>
+  						<th>
+  							Criteria
+  							<?php if(!class_exists('nggVotingePremium')) { ?>
+  								<br /><small>(Premium Feature)</small>
+  							<?php } ?>
+  						</th>
   						<th>Gallery Name</th>
   						<th>Filename</th>
   						<th>Avg / 10</th>
@@ -1079,6 +1114,18 @@ class nggVoting {
   								<?php $image = nggdb::find_image($val->pid); ?>
 									<tr <?php echo $cnt % 2 == 0 ? 'class="alternate"' : '' ?>>
 										<td><?php echo $val->pid ?></td>
+										<td>
+											<?php
+											if($val->criteria_id) {
+												if(class_exists('nggVotingPremium')) {
+													$c = nggVotingPremium::getCriteria(array('id'=>$val->criteria_id));
+													echo $c->name;
+												}
+											}else{
+												echo 'Overall';
+											}
+											?>
+										</td>
 										<td><?php echo $image->title; ?></td>
 										<td><?php echo $image->filename; ?></td>
 										<td><?php echo round($val->avg / 10, 2) ?></td>
