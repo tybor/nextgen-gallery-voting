@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
 Description: This plugin allows you to add user voting and rating to NextGEN Galleries and Images
-Version: 2.3
+Version: 2.3.1
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -147,7 +147,6 @@ class nggVoting {
 			ip VARCHAR(32) NULL,
 			proxy VARCHAR(32) NULL,
 			dateadded DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00",
-			criteria_id BIGINT NOT NULL DEFAULT 0,
 			UNIQUE KEY id (id)
 			);';
 			dbDelta($sql);
