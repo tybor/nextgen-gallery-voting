@@ -4,7 +4,7 @@ Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
 Tested up to: 3.5.1
-Stable tag: 2.3.1
+Stable tag: 2.3.2
 
 This plugin adds the ability for users to vote and rate your NextGEN Galleries and Images. Simple to understand options give you the ability to limit who can vote on what.
 
@@ -12,7 +12,7 @@ This plugin adds the ability for users to vote and rate your NextGEN Galleries a
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
 
-NGG Voting was inspired by a request from [Troy Schlegel of Schlegel Photography](http://www.schlegelphotography.com/).  Please read the FAQ for more info on how it works.
+NGG Voting was inspired by a request from Troy Schlegel of Schlegel Photography.  Please read the FAQ for more info on how it works.
 
 **Please read the FAQ**, as you are required to add a tag to templates for certain functionality to work!
 
@@ -44,6 +44,9 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Remember to add the tag to the gallery template for image voting to work!
 
 == Changelog ==
+
+= 2.3.2 =
+* Fixed a bug where new images weren't taking on all the default settings correctly.
 
 = 2.3.1 =
 * Fixed a table definition that was breaking completely fresh installs (thanks besso for the bug report).
@@ -147,6 +150,9 @@ Under the Gallery or Image options, the current average vote show along with how
 * Initial Release
 
 == Upgrade Notice ==
+
+= 2.3.2 =
+Fixes a bug where new images weren't taking on all the default settings correctly.
 
 = 2.3.1 =
 Fixed a bug that stopped fresh installs from builing the tables correctly.

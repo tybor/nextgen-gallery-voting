@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
 Description: This plugin allows you to add user voting and rating to NextGEN Galleries and Images
-Version: 2.3.1
+Version: 2.3.2
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -650,6 +650,15 @@ class nggVoting {
 				}
 			}
 		}
+		
+		function getImageCriteria() {
+			$tmp = array();
+			$tmp[0] = new stdClass;
+			$tmp[0]->id = 0;
+			$tmp[0]->name = 'Overall';
+			
+			return apply_filters('nggv_image_options_criteria', $tmp);
+		}
 
 		/**
 		 * Stops the script including a JS file more than once.  wp_enqueue_script only works
@@ -1209,11 +1218,7 @@ class nggVoting {
 			$popup = $info["path"]."?page=".$dirName."/".basename(__FILE__)."&action=get-votes-list";
 			
 			if($gallery_column_key == 'nggv_image_vote_options') { //this method is called for every column, so we check we have the right column
-				$tmp = array();
-				$tmp[0] = new stdClass;
-				$tmp[0]->id = 0;
-				$tmp[0]->name = 'Overall';
-				$criteria = apply_filters('nggv_image_options_criteria', $tmp);
+				$criteria = $this->getImageCriteria();
 				
 				if(count($criteria) > 1) { //if only 1 criteria, don't confuse the user with a tab. sheesh
 					echo '<div class="nggv-voting-options">';
@@ -1352,11 +1357,16 @@ class nggVoting {
 				$post = array();
 				$post['nggv_image'] = array();
 				$post['nggv_image'][$image['id']] = array();
-				$post['nggv_image'][$image['id']]['enable'] = get_option('nggv_image_enable');
-				$post['nggv_image'][$image['id']]['force_login'] = get_option('nggv_image_force_login');
-				$post['nggv_image'][$image['id']]['force_once'] = get_option('nggv_image_force_once');
-				$post['nggv_image'][$image['id']]['user_results'] = get_option('nggv_image_user_results');
-				$post['nggv_image'][$image['id']]['voting_type'] = get_option('nggv_image_voting_type');
+				
+				$criteria = $this->getImageCriteria();
+				foreach ((array)$criteria as $key=>$val) {
+					$post['nggv_image'][$image['id']][$val->id] = array();
+					$post['nggv_image'][$image['id']][$val->id]['enable'] = get_option('nggv_image_enable');
+					$post['nggv_image'][$image['id']][$val->id]['force_login'] = get_option('nggv_image_force_login');
+					$post['nggv_image'][$image['id']][$val->id]['force_once'] = get_option('nggv_image_force_once');
+					$post['nggv_image'][$image['id']][$val->id]['user_results'] = get_option('nggv_image_user_results');
+					$post['nggv_image'][$image['id']][$val->id]['voting_type'] = get_option('nggv_image_voting_type');
+				}
 				
 				$this->onGalleryUpdate($image['galleryID'], $post);
 			}

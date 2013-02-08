@@ -253,7 +253,7 @@ class nggvGalleryVote {
 			
 			$return['form'] .= $results['likes'].' ';
 			$return['form'] .= $results['likes'] == 1 ? nggVoting::msg('Like') : nggVoting::msg('Likes');
-			$return['form'] .= $results['dislikes'].' ';
+			$return['form'] .= ' '.$results['dislikes'].' ';
 			$return['form'] .= $results['dislikes'] == 1 ? nggVoting::msg('Dislike') : nggVoting::msg('Dislikes');
 		}
 		
