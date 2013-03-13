@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
 Description: This plugin allows you to add user voting and rating to NextGEN Galleries and Images
-Version: 2.3.2
+Version: 2.4
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -34,6 +34,7 @@ Backwards compatibility has been maintained with previous installs, which might 
 if(preg_match('#'.basename(__FILE__).'#', $_SERVER['PHP_SELF'])) {die('You are not allowed to call this page directly.');}
 
 class nggVoting {
+	private $dbVersion = 2.4;
 	private $slug;
 	public $types = array(
 		'2'=>array('name'=>'Star Rating', 'gallery'=>true, 'image'=>true,
@@ -78,6 +79,7 @@ class nggVoting {
 				'results'=>'imageVoteResultsDisLike'
 			))
 	);
+	private $initCatchVote = array();
 	
 	function __construct() {
 		require_once('voting-types.php');
@@ -111,6 +113,8 @@ class nggVoting {
 		//gallery voting hooks - user
 		add_filter('ngg_show_gallery_content', array(&$this, 'showGallery'), 10, 2);
 		
+		add_action('init', array(&$this, 'wpInit'));
+		
 	}
 	
 	// Install Functions {
@@ -123,6 +127,8 @@ class nggVoting {
 			global $wpdb;
 			require_once(ABSPATH.'wp-admin/includes/upgrade.php');
 			
+			//new col 'enforce_with_cookie'
+			
 			$sql = 'CREATE TABLE '.$wpdb->prefix.'nggv_settings (
 				id BIGINT(19) NOT NULL AUTO_INCREMENT,
 				gid BIGINT NOT NULL DEFAULT 0,
@@ -130,13 +136,14 @@ class nggVoting {
 				enable TINYINT NOT NULL DEFAULT 0,
 				force_login TINYINT NOT NULL DEFAULT 0,
 				force_once TINYINT NOT NULL DEFAULT 0,
+				enforce_with_cookie TINYINT NOT NULL DEFAULT 0,
 				user_results TINYINT NOT NULL DEFAULT 0,
 				voting_type INT NOT NULL DEFAULT 1,
 				criteria_id BIGINT NOT NULL DEFAULT 0,
 				UNIQUE KEY id (id)
 			);';
 			dbDelta($sql);
-			
+						
 			$sql = 'CREATE TABLE '.$wpdb->prefix.'nggv_votes (
 			id BIGINT(19) NOT NULL AUTO_INCREMENT,
 			gid BIGINT NOT NULL,
@@ -350,8 +357,16 @@ class nggVoting {
 						return "USER HAS VOTED";
 					}
 				}else{ //no forced login, so just check the IP for a vote
-					if($this->ipHasVotedImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId))) {
-						return "IP HAS VOTED";
+					$canVote = apply_filters('nggv_image_can_vote', $pid, $criteriaId, $options, null);
+					
+					if($canVote === true) {
+						return true;
+					}else if($canVote === false) {
+						return "COOKIE HAS VOTED";
+					}else{
+						if($this->ipHasVotedImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId))) {
+							return "IP HAS VOTED";
+						}
 					}
 				}
 			}else if($options->force_once == 2) {
@@ -359,9 +374,17 @@ class nggVoting {
 					if($this->userHasVotedOnGalleryImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId), $current_user->ID)) {
 						return "USER HAS VOTED";
 					}
-				}else{ //no forced login, so just check the IP for a vote
-					if($this->ipHasVotedOnGalleryImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId))) {
-						return "IP HAS VOTED";
+				}else{ //no forced login, so just check (a filter return value), then the IP for a vote
+					$canVote = apply_filters('nggv_image_can_vote', $pid, $criteriaId, $options, null);
+					
+					if($canVote === true) {
+						return true;
+					}else if($canVote === false) {
+						return "COOKIE HAS VOTED";
+					}else{
+						if($this->ipHasVotedOnGalleryImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId))) {
+							return "IP HAS VOTED";
+						}
 					}
 				}
 			}
@@ -693,8 +716,8 @@ class nggVoting {
 				$nggv_front_css = array();
 			}
 			
-			if(!$nggv_front_css[$filename]) {
-				$nggv_front_css[$filename] = array('filename'=>$nggv_front_css[$filename], 'added'=>true);
+			if(!isset($nggv_front_css[$filename])) {
+				$nggv_front_css[$filename] = array('filename'=>$filename, 'added'=>true);
 				return '<link rel="stylesheet" href="'.$filename.'" type="text/css" media="all" />';
 			}
 		}
@@ -706,6 +729,15 @@ class nggVoting {
 	
 	// Admin Functions {
 		function adminInits() {
+			// auto update the db if new version found.
+			if(get_option('nggv_database_version') === false) { //bool false means does not exists
+				add_option('nggv_database_version', 0, null, 'no');
+			}
+			if(get_option('nggv_database_version') < $this->dbVersion) {
+				$this->dbUpgrade();
+				update_option('nggv_database_version', $this->dbVersion);
+			}
+			
 			wp_enqueue_script('jquery');
 			wp_enqueue_script('thickbox');
 			wp_enqueue_style('thickbox');
@@ -946,9 +978,10 @@ class nggVoting {
 									<th>Number of votes allowed<br ><em>(IP or userid is used to stop multiple)</em></th>
 									<td style="text-align:center;"><input type="checkbox" name="nggv[gallery][force_once]" <?php echo (get_option('nggv_gallery_force_once') ? 'checked="checked"' : ''); ?> /></td>
 									<td style="text-align:center;">
-										<input type="radio" name="nggv[image][force_once]" <?php echo (get_option('nggv_image_force_once') == 0 ? 'checked="checked"' : ''); ?> value="0" /> Unlimited votes<br />
-										<input type="radio" name="nggv[image][force_once]" <?php echo (get_option('nggv_image_force_once') == 1 ? 'checked="checked"' : ''); ?> value="1" /> One per image<br />
-										<input type="radio" name="nggv[image][force_once]" <?php echo (get_option('nggv_image_force_once') == 2 ? 'checked="checked"' : ''); ?> value="2" /> One per gallery image is in
+										<input type="radio" name="nggv[image][force_once]" class="nggv-force-once" <?php echo (get_option('nggv_image_force_once') == 0 ? 'checked="checked"' : ''); ?> value="0" /> Unlimited votes<br />
+										<input type="radio" name="nggv[image][force_once]" class="nggv-force-once" <?php echo (get_option('nggv_image_force_once') == 1 ? 'checked="checked"' : ''); ?> value="1" /> One per image<br />
+										<input type="radio" name="nggv[image][force_once]" class="nggv-force-once" <?php echo (get_option('nggv_image_force_once') == 2 ? 'checked="checked"' : ''); ?> value="2" /> One per gallery image is in<br />
+										<?php echo apply_filters('nggv_settings_table_image_number_votes', ''); ?>
 									</td>
 								</tr>
       	
@@ -1244,12 +1277,16 @@ class nggVoting {
 						}
 						echo '</h4>';
 					}
-					echo '<table width="100%">';
+					echo '<table width="100%" class="nggv-image-voting-options">';
 					echo '<tr><td width="1px"><input type="checkbox" name="nggv_image['.$pid.']['.$val->id.'][enable]" value=1 '.(isset($opts->enable) && $opts->enable ? 'checked' : '').' /></td><td>Enable for image</td></tr>';
 					echo '<tr><td width="1px"><input type="checkbox" name="nggv_image['.$pid.']['.$val->id.'][force_login]" value=1 '.(isset($opts->force_login) && $opts->force_login ? 'checked' : '').' /></td><td>Only allow logged in users</td></tr>';
-					echo '<tr><td width="1px"><input type="radio" name="nggv_image['.$pid.']['.$val->id.'][force_once]" value=3 '.(empty($opts->force_once) ? 'checked' : '').' /></td><td>Unlimited votes for this image</td></tr>';
-					echo '<tr><td width="1px"><input type="radio" name="nggv_image['.$pid.']['.$val->id.'][force_once]" value=1 '.(isset($opts->force_once) && $opts->force_once == 1 ? 'checked' : '').' /></td><td>Only allow 1 vote per person for this image</td></tr>';
-					echo '<tr><td width="1px"><input type="radio" name="nggv_image['.$pid.']['.$val->id.'][force_once]" value=2 '.(isset($opts->force_once) && $opts->force_once == 2 ? 'checked' : '').' /></td><td>Only allow 1 vote per person for this gallery</td></tr>';
+					echo '<tr class="nggv-force-once"><td width="1px"><input type="radio" name="nggv_image['.$pid.']['.$val->id.'][force_once]" value=3 '.(empty($opts->force_once) ? 'checked' : '').' /></td><td>Unlimited votes for this image</td></tr>';
+					echo '<tr class="nggv-force-once"><td width="1px"><input type="radio" name="nggv_image['.$pid.']['.$val->id.'][force_once]" value=1 '.(isset($opts->force_once) && $opts->force_once == 1 ? 'checked' : '').' /></td><td>Only allow 1 vote per person for this image</td></tr>';
+					echo '<tr class="nggv-force-once"><td width="1px"><input type="radio" name="nggv_image['.$pid.']['.$val->id.'][force_once]" value=2 '.(isset($opts->force_once) && $opts->force_once == 2 ? 'checked' : '').' /></td><td>Only allow 1 vote per person for this gallery</td></tr>';
+					
+					//todo, move to premium
+					echo apply_filters('nggv_manage_gallery_image_number_votes', '', $opts);
+
 					echo '<tr><td width="1px"><input type="checkbox" name="nggv_image['.$pid.']['.$val->id.'][user_results]" value=1 '.(isset($opts->user_results) && $opts->user_results ? 'checked' : '').' /></td><td>Allow users to see results</td></tr>';
 					
 					echo '<tr><td colspan=2>';
@@ -1343,6 +1380,8 @@ class nggVoting {
 					}
 				}
 			}
+			
+			echo do_action('nggv_ongallery_update', $gid, $post);
 		}
 		
 		/**
@@ -1490,6 +1529,26 @@ class nggVoting {
 	// }
 	
 	// Front End Functions {
+		function wpInit() {
+			if(isset($_GET['nggv_pid']) && $_GET['nggv_pid']) {
+				if(!isset($_GET['nggv_criteria_id'])) {
+					$_GET['nggv_criteria_id'] = 0;
+				}
+				$options = $this->getImageVotingOptions($_GET['nggv_pid'], $_GET['nggv_criteria_id']);
+				$voteFuncs = $this->types[$options->voting_type]['imageCallback'];
+				$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
+				
+				//store in class var, so we have it for this page execution
+				$this->initCatchVote[$_GET['nggv_pid']][$_GET['nggv_criteria_id']] = array(
+					'pid'=>$_GET['nggv_pid'],
+					'criteria_id'=>$_GET['nggv_criteria_id'],
+					'result'=>$votedOrErr
+					);
+				
+				do_action('nggv_catch_vote', $_GET['nggv_pid'], $_GET['nggv_criteria_id'], $this->initCatchVote);
+			}
+		}
+		
 		function imageVoteForm($pid, $criteriaId) {
 			if(!is_numeric($pid)) {
 				//trigger_error("Invalid argument 1 for function ".__FUNCTION__."(\$galId).", E_USER_WARNING);
@@ -1512,9 +1571,12 @@ class nggVoting {
 				$url = $_SERVER['REQUEST_URI'];
 				$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
 				
-				//$votedOrErr = nggvGalleryVote::checkVoteData($this, $options);
 				$voteFuncs = $this->types[$options->voting_type]['imageCallback'];
-				$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
+				
+				//moved voting catch into 'init' hook, so I can set cookies.
+				//$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
+				$votedOrErr = isset($this->initCatchVote[$pid][$criteriaId]['result']) ? $this->initCatchVote[$pid][$criteriaId]['result'] : '';
+				
 				if(!isset($_GET['nggv_criteria_id'])) {
 					$_GET['nggv_criteria_id'] = 0;
 				}
@@ -1537,7 +1599,7 @@ class nggVoting {
 					if($options->enable) {
 						if($canVote === 'NOT LOGGED IN') { //the api wants them to login to vote
 							$form['form'] = nggVoting::msg('Only registered users can vote. Please login to cast your vote.');
-						}else if($canVote === 'USER HAS VOTED' || $canVote === 'IP HAS VOTED' || $canVote === true) { //api tells us they have voted, can they see results? (canVote will be true if they have just voted successfully)
+						}else if($canVote === 'USER HAS VOTED' || $canVote === 'IP HAS VOTED' || $canVote === 'COOKIE HAS VOTED' || $canVote === true) { //api tells us they have voted, can they see results? (canVote will be true if they have just voted successfully)
 							if($options->user_results) { //yes! show it
 								$form = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['results']), array($this, $options));
 							}else{ //nope, but thanks for trying

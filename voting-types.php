@@ -10,7 +10,11 @@ class nggvGalleryVote {
 			$out .= nggVoting::msg('You have already voted on this gallery.');
 		}else if($err == 'IP HAS VOTED') {
 			$out .= nggVoting::msg('This IP has already voted on this gallery.');
-		}else{
+		}
+		
+		$out = apply_filters('nggv_convert_error_code', $out, $err);
+		
+		if(!$out) {
 			$out .= nggVoting::msg('There was a problem saving your vote, please try again in a few moments.');
 		}
 		
@@ -133,7 +137,7 @@ class nggvGalleryVote {
 		$return = array();
 		if($options->voting_type == 1) {
 			$results = $nggv->getImageVotingResults(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id), array('avg'=>true));
-			$return['form'] .= nggVoting::msg('Current Average:').' '.round(($results['avg'] / 10), 1).' / 10';
+			$return['form'] = nggVoting::msg('Current Average:').' '.round(($results['avg'] / 10), 1).' / 10';
 		}
 		return $return;
 	}
@@ -251,7 +255,7 @@ class nggvGalleryVote {
 		if($options->voting_type == 3) {
 			$results = $nggv->getImageVotingResults(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id), array('likes'=>true, 'dislikes'=>true));
 			
-			$return['form'] .= $results['likes'].' ';
+			$return['form'] = $results['likes'].' ';
 			$return['form'] .= $results['likes'] == 1 ? nggVoting::msg('Like') : nggVoting::msg('Likes');
 			$return['form'] .= ' '.$results['dislikes'].' ';
 			$return['form'] .= $results['dislikes'] == 1 ? nggVoting::msg('Dislike') : nggVoting::msg('Dislikes');
@@ -377,7 +381,7 @@ class nggvGalleryVote {
 		if($options->voting_type == 2) {
 			$results = $nggv->getImageVotingResults(array('pid'=>$options->pid, 'criteria_id'=>$options->criteria_id), array('avg'=>true));
 			
-			$return['scripts'] .= $nggv->includeJs($nggv->pluginUrl.'js/ajaxify-stars.js');	//ajaxify voting, from v1.7
+			$return['scripts'] = $nggv->includeJs($nggv->pluginUrl.'js/ajaxify-stars.js');	//ajaxify voting, from v1.7
 			$return['scripts'] .= $nggv->includeCss($nggv->pluginUrl.'css/star_rating.css');
 
 			$return['form'] = '<span class="inline-rating">';

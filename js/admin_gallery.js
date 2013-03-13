@@ -56,4 +56,17 @@ jQuery(document).ready(function() {
 				e.preventDefault();
 				return false;
 		});
+		
+		jQuery('tr.nggv-force-once input').change(function() {
+				var $container = jQuery(this).parents('table.nggv-image-voting-options');
+				
+				if(jQuery(this).val() == 1 || jQuery(this).val() == 2)  {
+					$container.find('.nggv-enforce-cookies input').prop('disabled', false);
+					console.log($container.find('.nggv-enforce-cookies input'));
+				}else{
+					$container.find('.nggv-enforce-cookies input').attr('checked', false);
+					$container.find('.nggv-enforce-cookies input').prop('disabled', true);
+				}
+		});
+		jQuery('tr.nggv-force-once input:checked').change();
 });
