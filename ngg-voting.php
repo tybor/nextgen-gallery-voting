@@ -1057,7 +1057,7 @@ class nggVoting {
 				$qry .= ' AND p.galleryid = '.$wpdb->escape($_GET['nggv']['gallery']);
 			}
 			$qry .= ' GROUP BY v.pid, v.criteria_id';
-			$qry .= ' ORDER BY avg '.$_GET['nggv']['order'];
+			$qry .= ' ORDER BY avg '.$_GET['nggv']['order'].', num '.$_GET['nggv']['order'];
 			if($_GET['nggv']['limit']) {
 				$qry .= ' LIMIT 0, '.$_GET['nggv']['limit'];
 			}
@@ -1530,22 +1530,29 @@ class nggVoting {
 	
 	// Front End Functions {
 		function wpInit() {
-			if(isset($_GET['nggv_pid']) && $_GET['nggv_pid']) {
-				if(!isset($_GET['nggv_criteria_id'])) {
-					$_GET['nggv_criteria_id'] = 0;
+			if((isset($_GET['nggv_pid']) && $_GET['nggv_pid']) || isset($_POST['nggv']['vote_pid_id']) && $_POST['nggv']['vote_pid_id']) {				
+				if(isset($_GET['nggv_pid'])) {
+					if(!isset($_GET['nggv_criteria_id'])) {
+						$_GET['nggv_criteria_id'] = 0;
+					}
+					$options = $this->getImageVotingOptions($_GET['nggv_pid'], $_GET['nggv_criteria_id']);
+				}else if(isset($_POST['nggv']['vote_pid_id'])) {
+					if(!isset( $_POST['nggv']['vote_criteria_id'])) {
+						 $_POST['nggv']['vote_criteria_id'] = 0;
+					}
+					$options = $this->getImageVotingOptions($_POST['nggv']['vote_pid_id'], $_POST['nggv']['vote_criteria_id']);
 				}
-				$options = $this->getImageVotingOptions($_GET['nggv_pid'], $_GET['nggv_criteria_id']);
 				$voteFuncs = $this->types[$options->voting_type]['imageCallback'];
 				$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
 				
 				//store in class var, so we have it for this page execution
-				$this->initCatchVote[$_GET['nggv_pid']][$_GET['nggv_criteria_id']] = array(
-					'pid'=>$_GET['nggv_pid'],
-					'criteria_id'=>$_GET['nggv_criteria_id'],
+				$this->initCatchVote[$options->pid][$options->criteria_id] = array(
+					'pid'=>$options->pid,
+					'criteria_id'=>$options->criteria_id,
 					'result'=>$votedOrErr
 					);
 				
-				do_action('nggv_catch_vote', $_GET['nggv_pid'], $_GET['nggv_criteria_id'], $this->initCatchVote);
+				do_action('nggv_catch_vote', $options->pid, $options->criteria_id, $this->initCatchVote);
 			}
 		}
 		
