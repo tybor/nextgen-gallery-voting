@@ -1536,8 +1536,8 @@ class nggVoting {
 			$this->includeJs($this->pluginUrl.'js/ajaxify-likes.js');
 			$this->includeCss($this->pluginUrl.'css/star_rating.css');
 			
-			wp_enqueue_script('nggv-stars', $this->pluginUrl.'js/ajaxify-stars.js');
-			wp_enqueue_script('nggv-like', $this->pluginUrl.'js/ajaxify-likes.js');
+			wp_enqueue_script('nggv-stars', $this->pluginUrl.'js/ajaxify-stars.js', array('jquery'));
+			wp_enqueue_script('nggv-like', $this->pluginUrl.'js/ajaxify-likes.js', array('jquery'));
 			wp_enqueue_style('nggv-stars-css', $this->pluginUrl.'css/star_rating.css');
 			
 			if((isset($_GET['nggv_pid']) && $_GET['nggv_pid']) || isset($_POST['nggv']['vote_pid_id']) && $_POST['nggv']['vote_pid_id']) {				
