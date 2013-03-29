@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
 Description: This plugin allows you to add user voting and rating to NextGEN Galleries and Images
-Version: 2.4.1
+Version: 2.4.2
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -1530,6 +1530,16 @@ class nggVoting {
 	
 	// Front End Functions {
 		function wpInit() {
+			//I have added this code to the init, so the scripts are loaded correctly. The trade off is they load every page. Meh, seems better than users getting problems
+			//(calling this->includeJs() because I haven't removed calls in body code. this prevents them actually being included at that point)
+			$this->includeJs($this->pluginUrl.'js/ajaxify-stars.js');	//ajaxify voting, from v1.7
+			$this->includeJs($this->pluginUrl.'js/ajaxify-likes.js');
+			$this->includeCss($this->pluginUrl.'css/star_rating.css');
+			
+			wp_enqueue_script('nggv-stars', $this->pluginUrl.'js/ajaxify-stars.js');
+			wp_enqueue_script('nggv-like', $this->pluginUrl.'js/ajaxify-likes.js');
+			wp_enqueue_style('nggv-stars-css', $this->pluginUrl.'css/star_rating.css');
+			
 			if((isset($_GET['nggv_pid']) && $_GET['nggv_pid']) || isset($_POST['nggv']['vote_pid_id']) && $_POST['nggv']['vote_pid_id']) {				
 				if(isset($_GET['nggv_pid'])) {
 					if(!isset($_GET['nggv_criteria_id'])) {
