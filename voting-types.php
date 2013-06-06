@@ -21,6 +21,22 @@ class nggvGalleryVote {
 		return $out;
 	}
 	
+	public static function getUrl() {
+		$url = strtok($_SERVER['REQUEST_URI'], '?');
+		$get = $_GET;
+		if(isset($get['nggv_pid']) || isset($get['nggv_criteria_id'])) {
+			unset($get['nggv_pid']);
+			unset($get['nggv_criteria_id']);
+			unset($get['r']);
+		}
+		if($get) {
+			$url .= '?'.http_build_query($get);
+		}
+		$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
+		
+		return $url;
+	}
+	
 	// Drop Down (gallery)
 	public static function galleryVoteFormDropDown($nggv, $options) {
 		$return = array();
@@ -150,8 +166,7 @@ class nggvGalleryVote {
 		if($options->voting_type == 3) {
 			$return['scripts'] .= $nggv->includeJs($nggv->pluginUrl.'js/ajaxify-likes.js');	//ajaxify voting, from v1.7
 			
-			$url = $_SERVER['REQUEST_URI'];
-			$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
+			$url = self::getUrl();
 			
 			$return['form'] .= '<a href="'.$url.'nggv_gid='.$options->gid.'&r=1" class="nggv-link-like"><img src="'.$nggv->pluginUrl.'images/thumbs_up.png" alt="Like" /></a>';
 			$return['form'] .= '<a href="'.$url.'nggv_gid='.$options->gid.'&r=0" class="nggv-link-dislike"><img src="'.$nggv->pluginUrl.'images/thumbs_down.png" alt="Dislike" /></a>';
@@ -209,8 +224,7 @@ class nggvGalleryVote {
 		if($options->voting_type == 3) {
 			$return['scripts'] .= $nggv->includeJs($nggv->pluginUrl.'js/ajaxify-likes.js');	//ajaxify voting, from v1.7
 			
-			$url = $_SERVER['REQUEST_URI'];
-			$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
+			$url = self::getUrl();
 			
 			$return['form'] .= '<a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=1" class="nggv-link-like"><img src="'.$nggv->pluginUrl.'images/thumbs_up.png" alt="Like" /></a>';
 			$return['form'] .= '<a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=0" class="nggv-link-dislike"><img src="'.$nggv->pluginUrl.'images/thumbs_down.png" alt="Dislike" /></a>';
@@ -278,8 +292,7 @@ class nggvGalleryVote {
 				$return['form'] .= '<li class="current-rating" style="width:'.round($results['avg']).'%;">Currently '.round($results['avg'] / 20, 1).'/5 Stars.</li>';
 			}
 			
-			$url = $_SERVER['REQUEST_URI'];
-			$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
+			$url = self::getUrl();
 
 			$return['form'] .= '<li><a href="'.$url.'nggv_gid='.$options->gid.'&r=20" title="1 star out of 5" class="one-star">1</a></li>';
 			$return['form'] .= '<li><a href="'.$url.'nggv_gid='.$options->gid.'&r=40" title="2 stars out of 5" class="two-stars">2</a></li>';
@@ -344,8 +357,7 @@ class nggvGalleryVote {
 				$return['form'] .= '<li class="current-rating" style="width:'.round($results['avg']).'%;">Currently '.round($results['avg'] / 20, 1).'/5 Stars.</li>';
 			}
 			
-			$url = $_SERVER['REQUEST_URI'];
-			$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
+			$url = self::getUrl();
 			
 			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=20" title="1 star out of 5" class="one-star">1</a></li>';
 			$return['form'] .= '<li><a href="'.$url.'nggv_pid='.$options->pid.'&nggv_criteria_id='.$options->criteria_id.'&r=40" title="2 stars out of 5" class="two-stars">2</a></li>';
@@ -392,6 +404,15 @@ class nggvGalleryVote {
 			$return['form'] .= '<li>3</li>';
 			$return['form'] .= '<li>4</li>';
 			$return['form'] .= '<li>5</li>';
+			$return['form'] .= '</ul>';
+			$return['form'] .= '</span>';
+			
+		}
+		return $return;
+	}
+}
+?>
+'<li>5</li>';
 			$return['form'] .= '</ul>';
 			$return['form'] .= '</span>';
 			

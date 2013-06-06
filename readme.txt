@@ -4,9 +4,10 @@ Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
 Tested up to: 3.5.1
-Stable tag: 2.4.1
+Stable tag: 2.5
 
-This plugin adds the ability for users to vote and rate your NextGEN Galleries and Images. Simple to understand options give you the ability to limit who can vote on what.
+Adds the ability for users to vote and rate your NextGEN Galleries and Images. Simple to understand options give you the ability to
+limit who can vote on what.
 
 == Description ==
 
@@ -14,15 +15,18 @@ This plugin adds the ability for users to vote on NextGEN Galleries and Images. 
 
 NGG Voting was inspired by a request from Troy Schlegel of Schlegel Photography.  Please read the FAQ for more info on how it works.
 
-**Please read the FAQ**, as you are required to add a tag to templates for certain functionality to work!
+**Please read the FAQ**, as you are required to add a tag to gallery templates for certain functionality to work!
 
 == Frequently Asked Questions ==
 
 = In a nutshell, what is this? =
-This plugin adds options that can allow your users to vote on (more like rate) your Galleries and Images. There are options to limit which Gallery/Image to allow voting on, if the user needs to be registered and logged in, if they can vote more that once, and if they can see the current results.
+This plugin adds options that can allow your users to vote on (more like rate) your Galleries and Images. There are options to limit which
+Gallery/Image to allow voting on, if the user needs to be registered and logged in, if they can vote more that once, and if they can see the
+current results.
 
 = How do I add the voting form? =
-For Galleries it's easy.  You just need to enable voting on the gallery, and the voting form will automatically be appended to the gallery.  There is some basic styling, but the markup has got plenty of classes and ids that you should easily be able to hook into with your own stylesheets to make suit your site.
+For Galleries it's easy.  You just need to enable voting on the gallery, and the voting form will automatically be appended to the gallery.
+There is some basic styling, but the markup has got plenty of classes and ids that you should easily be able to hook into with your own stylesheets to make suit your site.
 
 = How do I make the voting form appear for images? =
 For images there's an extra step.  First you need to enable voing on the specific images you want.  Then you need to add a tag to the gallery template from NextGEN Gallery.  I'm going to use NextGEN version 1.9.6 to as the example, but it should be pretty much the same for all versions:
@@ -44,6 +48,13 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Remember to add the tag to the gallery template for image voting to work!
 
 == Changelog ==
+
+= 2.5 =
+* Optimized ajax voting.
+* Optimized JavaScript inclusions to fix conflicts with other plugins.
+* Added date range to 'Top Voted' filter.
+* Added ability to see indvidual votes in 'Top Voted' filter.
+* Added hooks and filters for the premium add-on to use.
 
 = 2.4.1 =
 * Fixed a bug introduced in 2.4, stopping the 'drop down' voting type registering votes.
@@ -158,7 +169,10 @@ Under the Gallery or Image options, the current average vote show along with how
 
 == Upgrade Notice ==
 
-= 2.4 =
+= 2.5 =
+This update optimizes the voting process code, and adds filter options to the Top Voted screen. Lots of hooks and filters have been added for Premium features coming soon.
+
+= 2.4.1 =
 This update fixes a bug that stopped the drop down voting type working for images
 
 = 2.4 =

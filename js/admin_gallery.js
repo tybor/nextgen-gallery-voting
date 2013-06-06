@@ -63,9 +63,13 @@ jQuery(document).ready(function() {
 				if(jQuery(this).val() == 1 || jQuery(this).val() == 2)  {
 					$container.find('.nggv-enforce-cookies input').prop('disabled', false);
 					console.log($container.find('.nggv-enforce-cookies input'));
+					
+					$container.find('.nggv-force-once-time select').prop('disabled', false);
 				}else{
 					$container.find('.nggv-enforce-cookies input').attr('checked', false);
 					$container.find('.nggv-enforce-cookies input').prop('disabled', true);
+					
+					$container.find('.nggv-force-once-time select').prop('disabled', true);
 				}
 		});
 		jQuery('tr.nggv-force-once input:checked').change();
