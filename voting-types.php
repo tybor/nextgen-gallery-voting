@@ -412,12 +412,3 @@ class nggvGalleryVote {
 	}
 }
 ?>
-'<li>5</li>';
-			$return['form'] .= '</ul>';
-			$return['form'] .= '</span>';
-			
-		}
-		return $return;
-	}
-}
-?>

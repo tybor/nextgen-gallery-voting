@@ -4,7 +4,7 @@ Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
 Tested up to: 3.5.1
-Stable tag: 2.5
+Stable tag: 2.5.1
 
 Adds the ability for users to vote and rate your NextGEN Galleries and Images. Simple to understand options give you the ability to
 limit who can vote on what.
@@ -48,6 +48,9 @@ Under the Gallery or Image options, the current average vote show along with how
 1. Remember to add the tag to the gallery template for image voting to work!
 
 == Changelog ==
+
+= 2.5.1 =
+* Fixed a bug stopping 'thank you' message showing if you don't have the latest Premium add-on
 
 = 2.5 =
 * Optimized ajax voting.
@@ -168,6 +171,9 @@ Under the Gallery or Image options, the current average vote show along with how
 * Initial Release
 
 == Upgrade Notice ==
+
+= 2.5.1 =
+Fixed minor bug that was stopping 'thank you' message showing when you don't allow users to see the results.
 
 = 2.5 =
 This update optimizes the voting process code, and adds filter options to the Top Voted screen. Lots of hooks and filters have been added for Premium features coming soon.

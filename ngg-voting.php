@@ -359,7 +359,7 @@ class nggVoting {
 			if($options->force_once == 1) {
 				if($options->force_login) { //force login, so check userid has voted already
 					if($vote = $this->userHasVotedImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId), $current_user->ID)) {
-						$canVote = apply_filters('nggv_check_vote_time', $pid, $criteriaId, $options, $vote[0]->dateadded, null);
+						$canVote = apply_filters('nggv_check_vote_time', null, $pid, $criteriaId, $options, $vote[0]->dateadded);
 						
 						if($canVote === true) { //time allows it!
 							return true;
@@ -378,7 +378,7 @@ class nggVoting {
 						return $canVote;
 					}else if($canVote === null) { //cookie voting not set, so use IP
 						if($vote = $this->ipHasVotedImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId))) {
-							$canVote = apply_filters('nggv_check_vote_time', $pid, $criteriaId, $options, $vote[0]->dateadded, null);
+							$canVote = apply_filters('nggv_check_vote_time', null, $pid, $criteriaId, $options, $vote[0]->dateadded);
 							
 							if($canVote === true) { //filter (cookie for now) allows it!
 								return true;
@@ -394,7 +394,7 @@ class nggVoting {
 				if($options->force_login) { //force login, so check userid has voted already
 					
 					if($vote = $this->userHasVotedOnGalleryImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId), $current_user->ID)) {
-						$canVote = apply_filters('nggv_check_vote_time', $pid, $criteriaId, $options, $vote[0]->dateadded, null);
+						$canVote = apply_filters('nggv_check_vote_time', null, $pid, $criteriaId, $options, $vote[0]->dateadded);
 						
 						if($canVote === true) { //time allows it!
 							return true;
@@ -413,7 +413,7 @@ class nggVoting {
 						return $canVote;
 					}else if($canVote === null) { //cookie voting not set, so use IP
 						if($vote = $this->ipHasVotedOnGalleryImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId))) {
-							$canVote = apply_filters('nggv_check_vote_time', $pid, $criteriaId, $options, $vote[0]->dateadded, null);
+							$canVote = apply_filters('nggv_check_vote_time', null, $pid, $criteriaId, $options, $vote[0]->dateadded);
 							
 							if($canVote === true) { //cookie allows it!
 								return true;
