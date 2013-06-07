@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
 Description: This plugin allows you to add user voting and rating to NextGEN Galleries and Images
-Version: 2.5.1
+Version: 2.4
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -34,7 +34,7 @@ Backwards compatibility has been maintained with previous installs, which might 
 if(preg_match('#'.basename(__FILE__).'#', $_SERVER['PHP_SELF'])) {die('You are not allowed to call this page directly.');}
 
 class nggVoting {
-	private $dbVersion = 2.5;
+	private $dbVersion = 2.4;
 	private $slug;
 	public $types = array(
 		'2'=>array('name'=>'Star Rating', 'gallery'=>true, 'image'=>true,
@@ -137,7 +137,6 @@ class nggVoting {
 				force_login TINYINT NOT NULL DEFAULT 0,
 				force_once TINYINT NOT NULL DEFAULT 0,
 				enforce_with_cookie TINYINT NOT NULL DEFAULT 0,
-				force_once_time TINYINT NOT NULL DEFAULT 0,
 				user_results TINYINT NOT NULL DEFAULT 0,
 				voting_type INT NOT NULL DEFAULT 1,
 				criteria_id BIGINT NOT NULL DEFAULT 0,
@@ -188,7 +187,7 @@ class nggVoting {
 		 * @author Shaun <shaunalberts@gmail.com>
 		 * @return array("avg"=>double average for image, "list"=>array of objects of all votes of the image, "number"=>integer the number of votes for the image)
 		 */
-		function getImageVotingResults($pid, $type=array("avg"=>true, "list"=>true, "number"=>true, "likes"=>true, "dislikes"=>true), $extraWhere='') {
+		function getImageVotingResults($pid, $type=array("avg"=>true, "list"=>true, "number"=>true, "likes"=>true, "dislikes"=>true)) {
 			if(is_numeric($pid)) { //old style arg where just 'pid' was needed
 				$criteriaId = 0; //default for old calls and add ons
 			}else if(is_array($pid)) {
@@ -207,11 +206,7 @@ class nggVoting {
 					$results['avg'] = (isset($avg->avg) && $avg->avg ? $avg->avg : 0);
 				}
 				if(isset($type["list"]) && $type["list"]) {
-					$where = "pid = '".$wpdb->escape($pid)."' AND criteria_id = '".$wpdb->escape($criteriaId)."'";
-					if($extraWhere) {
-						$where = '('.$where.') AND ('.$extraWhere.')';
-					}
-					$list = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."nggv_votes WHERE ".$where." ORDER BY dateadded DESC");
+					$list = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' AND criteria_id = '".$wpdb->escape($criteriaId)."' ORDER BY dateadded DESC");
 					$results['list'] = $list;
 				}
 				if(isset($type["num"]) && $type["num"]) {
@@ -358,76 +353,28 @@ class nggVoting {
 			
 			if($options->force_once == 1) {
 				if($options->force_login) { //force login, so check userid has voted already
-					if($vote = $this->userHasVotedImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId), $current_user->ID)) {
-						$canVote = apply_filters('nggv_check_vote_time', null, $pid, $criteriaId, $options, $vote[0]->dateadded);
-						
-						if($canVote === true) { //time allows it!
-							return true;
-						}else if($canVote) { //returned a string, so thats an error
-							return 'USER '.$canVote;
-						}else{ //not allowing or error message, so fall back to old default
-							return 'USER HAS VOTED';
-						}
+					if($this->userHasVotedImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId), $current_user->ID)) {
+						return "USER HAS VOTED";
 					}
 				}else{ //no forced login, so just check the IP for a vote
 					$canVote = apply_filters('nggv_image_can_vote', $pid, $criteriaId, $options, null);
 					
-					if($canVote === true) { //cookie allows it!
+					if($canVote === true) {
 						return true;
-					}else if($canVote) { //returned a string, so thats an error
-						return $canVote;
-					}else if($canVote === null) { //cookie voting not set, so use IP
-						if($vote = $this->ipHasVotedImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId))) {
-							$canVote = apply_filters('nggv_check_vote_time', null, $pid, $criteriaId, $options, $vote[0]->dateadded);
-							
-							if($canVote === true) { //filter (cookie for now) allows it!
-								return true;
-							}else if($canVote) {
-								return 'IP '.$canVote;
-							}else{
-								return "IP HAS VOTED";
-							}
+					}else if($canVote === false) {
+						return "COOKIE HAS VOTED";
+					}else{
+						if($this->ipHasVotedImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId))) {
+							return "IP HAS VOTED";
 						}
 					}
 				}
 			}else if($options->force_once == 2) {
 				if($options->force_login) { //force login, so check userid has voted already
-					
-					if($vote = $this->userHasVotedOnGalleryImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId), $current_user->ID)) {
-						$canVote = apply_filters('nggv_check_vote_time', null, $pid, $criteriaId, $options, $vote[0]->dateadded);
-						
-						if($canVote === true) { //time allows it!
-							return true;
-						}else if($canVote) { //returned a string, so thats an error
-							return 'USER '.$canVote;
-						}else{ //not allowing or error message, so fall back to old default
-							return 'USER HAS VOTED';
-						}
+					if($this->userHasVotedOnGalleryImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId), $current_user->ID)) {
+						return "USER HAS VOTED";
 					}
 				}else{ //no forced login, so just check (a filter return value), then the IP for a vote
-					$canVote = apply_filters('nggv_image_can_vote', $pid, $criteriaId, $options, null);
-															
-					if($canVote === true) { //cookie allows it!
-						return true;
-					}else if($canVote) { //returned a string, so thats an error
-						return $canVote;
-					}else if($canVote === null) { //cookie voting not set, so use IP
-						if($vote = $this->ipHasVotedOnGalleryImage(array('pid'=>$pid, 'criteria_id'=>$criteriaId))) {
-							$canVote = apply_filters('nggv_check_vote_time', null, $pid, $criteriaId, $options, $vote[0]->dateadded);
-							
-							if($canVote === true) { //cookie allows it!
-								return true;
-							}else if($canVote) {
-								return 'IP '.$canVote;
-							}else{
-								return "IP HAS VOTED";
-							}
-						}
-					}
-
-					
-					
-					/*
 					$canVote = apply_filters('nggv_image_can_vote', $pid, $criteriaId, $options, null);
 					
 					if($canVote === true) {
@@ -439,7 +386,6 @@ class nggVoting {
 							return "IP HAS VOTED";
 						}
 					}
-					*/
 				}
 			}
 			
@@ -484,7 +430,7 @@ class nggVoting {
 				$criteriaId = is_numeric($tmp['criteria_id']) ? $tmp['criteria_id'] : 0;
 			}
 			
-			if($votes = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' AND criteria_id = '".$wpdb->escape($criteriaId)."' AND user_id = '".$wpdb->escape($userid)."' ORDER BY dateadded DESC")) {
+			if($votes = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' AND criteria_id = '".$wpdb->escape($criteriaId)."' AND user_id = '".$wpdb->escape($userid)."'")) {
 				return $votes;
 			}else{
 				return array();
@@ -517,16 +463,14 @@ class nggVoting {
 			}
 			
 			$picturelist = nggdb::get_gallery($image->gid);
-			$inPid = array();
 			foreach ((array)$picturelist as $key=>$val) {
-				$inPid[] = $val->pid;
+				if($v = $this->userHasVotedImage(array('pid'=>$val->pid, 'criteria_id'=>$criteriaId), $userid)) {
+					return true; //aha! there was a vote somewhere in this gallery.
+				}
 			}
 			
-			if($votes = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."nggv_votes WHERE pid IN (".implode(', ', $inPid).") AND criteria_id = '".$wpdb->escape($criteriaId)."' AND user_id = '".$wpdb->escape($userid)."' ORDER BY dateadded DESC")) {
-				return $votes;
-			}else{
-				return array();
-			}
+			return false; //cant find any votes, so seems safe
+			
 		}
 
 		/**
@@ -542,11 +486,6 @@ class nggVoting {
 		function ipHasVotedOnGalleryImage($pid, $ip=null) {
 			global $wpdb;
 			
-			if(!$ip) {
-				$tmp = $this->getUserIp();
-				$ip = $tmp["ip"];
-			}
-			
 			if(is_numeric($pid)) { //old style arg where just 'pid' was needed
 				$criteriaId = 0; //default for old calls and add ons
 			}else if(is_array($pid)) {
@@ -560,16 +499,13 @@ class nggVoting {
 			}
 			
 			$picturelist = nggdb::get_gallery($image->gid);
-			$inPid = array();
 			foreach ((array)$picturelist as $key=>$val) {
-				$inPid[] = $val->pid;
+				if($v = $this->ipHasVotedImage(array('pid'=>$val->pid, 'criteria_id'=>$criteriaId), $ip)) {
+					return true; //aha! there was a vote somewhere in this gallery.
+				}
 			}
 			
-			if($votes = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."nggv_votes WHERE pid IN (".implode(', ', $inPid).") AND criteria_id = '".$wpdb->escape($criteriaId)."' AND ip = '".$wpdb->escape($ip)."' ORDER BY dateadded DESC")) {
-				return $votes;
-			}else{
-				return array();
-			}
+			return false; //cant find any votes, so seems safe
 		}
 		
 		/**
@@ -619,7 +555,7 @@ class nggVoting {
 				$ip = $tmp["ip"];
 			}
 			
-			if($votes = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' AND criteria_id = '".$wpdb->escape($criteriaId)."' AND ip = '".$wpdb->escape($ip)."' ORDER BY dateadded DESC")) {
+			if($votes = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."nggv_votes WHERE pid = '".$wpdb->escape($pid)."' AND criteria_id = '".$wpdb->escape($criteriaId)."' AND ip = '".$wpdb->escape($ip)."'")) {
 				return $votes;
 			}else{
 				return array();
@@ -805,10 +741,6 @@ class nggVoting {
 			wp_enqueue_script('jquery');
 			wp_enqueue_script('thickbox');
 			wp_enqueue_style('thickbox');
-			
-			wp_enqueue_script('jquery-ui-datepicker');
-			wp_enqueue_script('nggv-top-voted', $this->pluginUrl.'js/top-voted.js');
-			wp_enqueue_style('jquery-ui-nggv', $this->pluginUrl.'css/jquery-ui/jquery-ui-1.10.3.custom.min.css');
 		}
 		
 		/**
@@ -1043,7 +975,7 @@ class nggVoting {
 								</tr>
       	
 								<tr valign="top">
-									<th>Limit user to 1 vote:<br ><em>(IP or userid is used to stop multiple)</em></th>
+									<th>Number of votes allowed<br ><em>(IP or userid is used to stop multiple)</em></th>
 									<td style="text-align:center;"><input type="checkbox" name="nggv[gallery][force_once]" <?php echo (get_option('nggv_gallery_force_once') ? 'checked="checked"' : ''); ?> /></td>
 									<td style="text-align:center;">
 										<input type="radio" name="nggv[image][force_once]" class="nggv-force-once" <?php echo (get_option('nggv_image_force_once') == 0 ? 'checked="checked"' : ''); ?> value="0" /> Unlimited votes<br />
@@ -1114,10 +1046,6 @@ class nggVoting {
 
 			$_GET['nggv']['limit'] = isset($_GET['nggv']['limit']) && is_numeric($_GET['nggv']['limit']) ? $_GET['nggv']['limit'] : 25;
 			$_GET['nggv']['order'] = isset($_GET['nggv']['order']) && $_GET['nggv']['order'] ? $_GET['nggv']['order'] : 'DESC';
-			//premium feature, but add it here to keep consistency (wont affect anything if premium not installed)
-			$_GET['nggv']['export_type'] = isset($_GET['nggv']['export_type']) && $_GET['nggv']['export_type'] ? $_GET['nggv']['export_type'] : 'avg';
-			
-			$listWhere = '';
 			
 			$qry = 'SELECT ';
 			$qry .= 'v.pid, v.criteria_id, SUM(v.vote) AS total, AVG(v.vote) AS avg, MIN(v.vote) AS min, MAX(v.vote) AS max, COUNT(v.vote) AS num';
@@ -1128,34 +1056,18 @@ class nggVoting {
 			if(isset($_GET['nggv']['gallery']) && $_GET['nggv']['gallery']) {
 				$qry .= ' AND p.galleryid = '.$wpdb->escape($_GET['nggv']['gallery']);
 			}
-			if(isset($_GET['nggv']['date_from']) && $_GET['nggv']['date_from']) {
-				$qry .= ' AND v.dateadded >= "'.$wpdb->escape($_GET['nggv']['date_from']).' 00:00:00"';
-				$listWhere .= $listWhere ? ' AND ' : '';
-				$listWhere .= 'dateadded >= "'.$wpdb->escape($_GET['nggv']['date_from']).' 00:00:00"';
-			}
-			if(isset($_GET['nggv']['date_to']) && $_GET['nggv']['date_to']) {
-				$qry .= ' AND v.dateadded <= "'.$wpdb->escape($_GET['nggv']['date_to']).' 23:59:59"';
-				$listWhere .= $listWhere ? ' AND ' : '';
-				$listWhere .= 'dateadded <= "'.$wpdb->escape($_GET['nggv']['date_to']).' 23:59:59"';
-			}
-						
 			$qry .= ' GROUP BY v.pid, v.criteria_id';
-			$qry .= ' ORDER BY avg '.$_GET['nggv']['order'].', num '.$_GET['nggv']['order'];
+			$qry .= ' ORDER BY avg '.$_GET['nggv']['order'];
 			if($_GET['nggv']['limit']) {
 				$qry .= ' LIMIT 0, '.$_GET['nggv']['limit'];
 			}
 			
 			$list = $wpdb->get_results($qry);
-			foreach ((array)$list as $key=>$val) {
-				$tmp = $this->getImageVotingResults(array('pid'=>$val->pid, 'criteria_id'=>$val->criteria_id), array('list'=>true), $listWhere);
-				$list[$key]->details = $tmp['list'];
-			}
 			$list = apply_filters('nggv_top_voted_results', $list);
 			
 			if (isset($_GET['noheader'])) {require_once(ABSPATH.'wp-admin/admin-header.php');} //replace the header if we need output...
 
 			?>
-						
 			<div class="wrap">
 				<h2>Top Rated Images</h2>
 			
@@ -1179,13 +1091,6 @@ class nggVoting {
 											<option value="asc" <?php echo ($_GET['nggv']['order'] == 'asc' ? 'selected' : ''); ?>>Lowest to Highest</option>
 										</select>
 									</td>
-								</tr>
-								
-								<tr>
-									<th>From Date</th>
-									<td><input type="text" id="nggv_date_from" name="nggv[date_from]" value="<?php echo $_GET['nggv']['date_from'] ?>" /></td>
-									<th>To Date</th>
-									<td><input type="text" id="nggv_date_to" name="nggv[date_to]" value="<?php echo $_GET['nggv']['date_to'] ?>" /></td>
 								</tr>
 								
 								<?php
@@ -1218,8 +1123,8 @@ class nggVoting {
 
 				<?php if($list && !class_exists('nggVotingPremium')) { ?>
 					<div class="updated below-h2">
-						Look at the people voing for your images! Have you returned the favour by <a target="_blank" href="http://wordpress.org/support/view/plugin-reviews/nextgen-gallery-voting">rating NGG Voting</a>?<br />
-						Maybe you're even more awesome, and might consider <a target="_blank" href="http://shauno.co.za/donate/">donating</a>?
+						Wow, check all those awesome people voing for your images! Have you returned the favour by <a target="_blank" href="http://wordpress.org/extend/plugins/nextgen-gallery-voting/">rating NGG Voting</a>?<br />
+						Maybe you're even more awesomer and might consider <a target="_blank" href="http://shauno.co.za/donate/">donating</a>?
 					</div>
 				<?php } ?>
 				
@@ -1267,32 +1172,8 @@ class nggVoting {
 										<td><?php echo round($val->avg / 10, 2) ?></td>
 										<td><?php echo round($val->max / 10, 2) ?></td>
 										<td><?php echo round($val->min / 10, 2) ?></td>
-										<td><?php echo $val->num ?> <a href="#" class="nggv-top-vote-item">(View Votes)</a></td>
+										<td><?php echo $val->num ?>	</td>
 										<td><img src="<?php echo $image->thumbURL; ?>" /></td>
-									</tr>
-									<tr style="display:none;">
-										<td colspan="9">
-											<table cellspacing="0" class="wp-list-table widefat fixed">
-  											<thead>
-  												<tr>
-  													<th>Date</th>
-  													<th>Username</th>
-  													<th>IP</th>
-  													<th>Vote / 10</th>
-  												</tr>
-  											</thead>
-  											<?php foreach ((array)$val->details as $vote) { ?>
-  												<?php $user_info = $vote->user_id ? get_userdata($vote->user_id) : array(); ?>
-													<tr>
-														<td><?php echo $vote->dateadded ?></td>
-														<td><?php echo (isset($user_info->data->display_name) && $user_info->data->display_name ? $user_info->data->display_name : $vote->user_id) ?></td>
-														<td><?php echo $vote->ip ?></td>
-														<td><?php echo $vote->vote / 10 ?></td>
-													</tr>
-												<?php } ?>
-  										</table>
-
-										</td>
 									</tr>
 									<?php $cnt++; ?>
 								<?php } ?>
@@ -1403,6 +1284,7 @@ class nggVoting {
 					echo '<tr class="nggv-force-once"><td width="1px"><input type="radio" name="nggv_image['.$pid.']['.$val->id.'][force_once]" value=1 '.(isset($opts->force_once) && $opts->force_once == 1 ? 'checked' : '').' /></td><td>Only allow 1 vote per person for this image</td></tr>';
 					echo '<tr class="nggv-force-once"><td width="1px"><input type="radio" name="nggv_image['.$pid.']['.$val->id.'][force_once]" value=2 '.(isset($opts->force_once) && $opts->force_once == 2 ? 'checked' : '').' /></td><td>Only allow 1 vote per person for this gallery</td></tr>';
 					
+					//todo, move to premium
 					echo apply_filters('nggv_manage_gallery_image_number_votes', '', $opts);
 
 					echo '<tr><td width="1px"><input type="checkbox" name="nggv_image['.$pid.']['.$val->id.'][user_results]" value=1 '.(isset($opts->user_results) && $opts->user_results ? 'checked' : '').' /></td><td>Allow users to see results</td></tr>';
@@ -1648,87 +1530,23 @@ class nggVoting {
 	
 	// Front End Functions {
 		function wpInit() {
-			//I have added this code to the init, so the scripts are loaded correctly. The trade off is they load every page. Meh, seems better than users getting problems
-			//(calling this->includeJs() because I haven't removed calls in body code. this prevents them actually being included at that point)
-			$this->includeJs($this->pluginUrl.'js/ajaxify-stars.js');	//ajaxify voting, from v1.7
-			$this->includeJs($this->pluginUrl.'js/ajaxify-likes.js');
-			$this->includeCss($this->pluginUrl.'css/star_rating.css');
-			
-			wp_enqueue_script('nggv-stars', $this->pluginUrl.'js/ajaxify-stars.js', array('jquery'));
-			wp_enqueue_script('nggv-like', $this->pluginUrl.'js/ajaxify-likes.js', array('jquery'));
-			wp_enqueue_style('nggv-stars-css', $this->pluginUrl.'css/star_rating.css');
-			
-			if((isset($_GET['nggv_pid']) && $_GET['nggv_pid']) || isset($_POST['nggv']['vote_pid_id']) && $_POST['nggv']['vote_pid_id']) {
-				if(isset($_GET['nggv_pid'])) {
-					if(!isset($_GET['nggv_criteria_id'])) {
-						$_GET['nggv_criteria_id'] = 0;
-					}
-					$options = $this->getImageVotingOptions($_GET['nggv_pid'], $_GET['nggv_criteria_id']);
-				}else if(isset($_POST['nggv']['vote_pid_id'])) {
-					if(!isset( $_POST['nggv']['vote_criteria_id'])) {
-						 $_POST['nggv']['vote_criteria_id'] = 0;
-					}
-					$options = $this->getImageVotingOptions($_POST['nggv']['vote_pid_id'], $_POST['nggv']['vote_criteria_id']);
+			if(isset($_GET['nggv_pid']) && $_GET['nggv_pid']) {
+				if(!isset($_GET['nggv_criteria_id'])) {
+					$_GET['nggv_criteria_id'] = 0;
 				}
+				$options = $this->getImageVotingOptions($_GET['nggv_pid'], $_GET['nggv_criteria_id']);
 				$voteFuncs = $this->types[$options->voting_type]['imageCallback'];
 				$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
 				
 				//store in class var, so we have it for this page execution
-				$this->initCatchVote[$options->pid][$options->criteria_id] = array(
-					'pid'=>$options->pid,
-					'criteria_id'=>$options->criteria_id,
-					'result'=>$votedOrErr,
-					'dateadded'=>date('Y-m-d H:i:s', time())
+				$this->initCatchVote[$_GET['nggv_pid']][$_GET['nggv_criteria_id']] = array(
+					'pid'=>$_GET['nggv_pid'],
+					'criteria_id'=>$_GET['nggv_criteria_id'],
+					'result'=>$votedOrErr
 					);
 				
-				do_action('nggv_catch_vote', $options->pid, $options->criteria_id, $this->initCatchVote);
-				
-				if($_GET['ajaxify']) { //catch the ajax vote
-					$form = $this->getImageVoteMarkup($options);
-
-					echo '<!-- NGGV START AJAX RESPONSE -->';
-					echo '<script>';
-					echo 'var nggv_js = {};';
-					echo 'nggv_js.options = {};';
-					echo 'nggv_js.saved = '.($votedOrErr === true ? '1' : '0').';';
-					echo 'nggv_js.msg = "'.addslashes($votedOrErr).'";';
-					echo 'nggv_js.voting_form = "'.addslashes($form['form']).'";';
-					echo '<script><!-- NGGV END AJAX RESPONSE -->';
-					exit;
-				}
+				do_action('nggv_catch_vote', $_GET['nggv_pid'], $_GET['nggv_criteria_id'], $this->initCatchVote);
 			}
-		}
-		
-		function getImageVoteMarkup($options) {
-			$pid = $options->pid;
-			$criteriaId = $options->criteria_id;
-			$voteFuncs = $this->types[$options->voting_type]['imageCallback'];
-			
-			//is there a vote happing for this pid right now?
-			$votedOrErr = isset($this->initCatchVote[$pid][$criteriaId]['result']) ? $this->initCatchVote[$pid][$criteriaId]['result'] : '';
-			
-			$form = array();
-			if((($canVote = $this->canVoteImage($pid, $criteriaId)) === true) && !$votedOrErr) { //they can vote, show the form
-				//$return = apply_filters('nggv_gallery_vote_form', $nggv, $options);
-				$form = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['form']), array($this, $options));
-			}else{ //ok, they cant vote.  what next?
-				if($options->enable) {
-					if($canVote === 'NOT LOGGED IN') { //the api wants them to login to vote
-						$form['form'] = nggVoting::msg('Only registered users can vote. Please login to cast your vote.');
-					}else if($canVote === 'USER HAS VOTED'
-						|| $canVote === 'IP HAS VOTED' || $canVote == 'IP HAS VOTED TODAY' || $canVote == 'IP HAS VOTED THIS WEEK' || $canVote == 'IP HAS VOTED THIS MONTH' || $canVote == 'IP HAS VOTED THIS YEAR'
-						|| $canVote === 'USER HAS VOTED' || $canVote == 'USER HAS VOTED TODAY' || $canVote == 'USER HAS VOTED THIS WEEK' || $canVote == 'USER HAS VOTED THIS MONTH' || $canVote == 'USER HAS VOTED THIS YEAR'
-						|| $canVote === 'COOKIE HAS VOTED' || $canVote == 'COOKIE HAS VOTED TODAY' || $canVote == 'COOKIE HAS VOTED THIS WEEK' || $canVote == 'COOKIE HAS VOTED THIS MONTH' || $canVote == 'COOKIE HAS VOTED THIS YEAR'
-						|| $canVote === true) { //api tells us they have voted, can they see results? (canVote will be true if they have just voted successfully)
-						if($options->user_results) { //yes! show it
-							$form = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['results']), array($this, $options));
-						}else{ //nope, but thanks for trying
-							$form['form'] = nggVoting::msg('Thank you for casting your vote.');
-						}
-					}
-				}
-			}
-			return $form;
 		}
 		
 		function imageVoteForm($pid, $criteriaId) {
@@ -1750,23 +1568,19 @@ class nggVoting {
 					$_GET['nggv_pid'] = $_GET['pid'];
 				}
 				
+				$url = $_SERVER['REQUEST_URI'];
+				$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
+				
+				$voteFuncs = $this->types[$options->voting_type]['imageCallback'];
+				
+				//moved voting catch into 'init' hook, so I can set cookies.
+				//$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
+				$votedOrErr = isset($this->initCatchVote[$pid][$criteriaId]['result']) ? $this->initCatchVote[$pid][$criteriaId]['result'] : '';
+				
 				if(!isset($_GET['nggv_criteria_id'])) {
 					$_GET['nggv_criteria_id'] = 0;
 				}
 				
-				//$url = $_SERVER['REQUEST_URI'];
-				//$url .= (strpos($url, '?') === false ? '?' : (substr($url, -1) == '&' ? '' : '&')); //make sure the url ends in '?' or '&' correctly
-				
-				//$voteFuncs = $this->types[$options->voting_type]['imageCallback'];
-				
-				//moved voting catch into 'init' hook, so I can set cookies.
-				//$votedOrErr = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['catch']), array($this, $options));
-				
-				/*
-				$votedOrErr = isset($this->initCatchVote[$pid][$criteriaId]['result']) ? $this->initCatchVote[$pid][$criteriaId]['result'] : '';
-				*/
-				
-				/*
 				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['nggv_pid']) &&  $_GET['nggv_pid'] == $pid && $_GET['nggv_criteria_id'] == $criteriaId) {
 					$out .= '<!-- NGGV START AJAX RESPONSE -->';
 					$out .= '<script>';
@@ -1775,11 +1589,9 @@ class nggVoting {
 					$out .= 'nggv_js.saved = '.($votedOrErr === true ? '1' : '0').';';
 					$out .= 'nggv_js.msg = "'.addslashes($votedOrErr).'";';
 				}
-				*/
 				
 				//$form = nggvGalleryVote::showVoteForm($this, $options, $votedOrErr);
 				
-				/*
 				if((($canVote = $this->canVoteImage($pid, $criteriaId)) === true) && !$votedOrErr) { //they can vote, show the form
 					//$return = apply_filters('nggv_gallery_vote_form', $nggv, $options);
 					$form = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['form']), array($this, $options));
@@ -1787,11 +1599,7 @@ class nggVoting {
 					if($options->enable) {
 						if($canVote === 'NOT LOGGED IN') { //the api wants them to login to vote
 							$form['form'] = nggVoting::msg('Only registered users can vote. Please login to cast your vote.');
-						}else if($canVote === 'USER HAS VOTED'
-							|| $canVote === 'IP HAS VOTED' || $canVote == 'IP HAS VOTED TODAY' || $canVote == 'IP HAS VOTED THIS WEEK' || $canVote == 'IP HAS VOTED THIS MONTH' || $canVote == 'IP HAS VOTED THIS YEAR'
-							|| $canVote === 'USER HAS VOTED' || $canVote == 'USER HAS VOTED TODAY' || $canVote == 'USER HAS VOTED THIS WEEK' || $canVote == 'USER HAS VOTED THIS MONTH' || $canVote == 'USER HAS VOTED THIS YEAR'
-							|| $canVote === 'COOKIE HAS VOTED' || $canVote == 'COOKIE HAS VOTED TODAY' || $canVote == 'COOKIE HAS VOTED THIS WEEK' || $canVote == 'COOKIE HAS VOTED THIS MONTH' || $canVote == 'COOKIE HAS VOTED THIS YEAR'
-							|| $canVote === true) { //api tells us they have voted, can they see results? (canVote will be true if they have just voted successfully)
+						}else if($canVote === 'USER HAS VOTED' || $canVote === 'IP HAS VOTED' || $canVote === 'COOKIE HAS VOTED' || $canVote === true) { //api tells us they have voted, can they see results? (canVote will be true if they have just voted successfully)
 							if($options->user_results) { //yes! show it
 								$form = @call_user_func_array(array($voteFuncs['class'], $voteFuncs['results']), array($this, $options));
 							}else{ //nope, but thanks for trying
@@ -1800,15 +1608,10 @@ class nggVoting {
 						}
 					}
 				}
-				*/
 				
-				$form = $this->getImageVoteMarkup($options);
-				
-				/*
 				if(isset($_GET['ajaxify']) && $_GET['ajaxify']) {
 					$out .= 'nggv_js.voting_form = "'.addslashes($form['form']).'";';
 				}else{
-				*/
 					$out .= '<div class="nggv_container">';
 						$out .= (isset($form['scripts']) ?  $form['scripts'] : '');
 						$out .= '<input type="hidden" id="ngg-genric-err-msg" value="'.esc_attr(nggVoting::msg('There was a problem saving your vote, please try again in a few moments.')).'" />';
@@ -1821,15 +1624,11 @@ class nggVoting {
 							$out .= $form['form'];
 						$out .= '</div>';
 					$out .= '</div>';
-				/*
 				}
-				*/
 				
-				/*
 				if(isset($_GET['ajaxify']) && $_GET['ajaxify'] && isset($_GET['nggv_pid']) && $_GET['nggv_pid'] == $pid && $_GET['nggv_criteria_id'] == $criteriaId) {
 					$out .= '<script><!-- NGGV END AJAX RESPONSE -->';
 				}
-				*/
 			}
 			
 			return $out;
