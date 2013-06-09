@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
 Description: This plugin allows you to add user voting and rating to NextGEN Galleries and Images
-Version: 2.5.1
+Version: 2.5.2
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -370,8 +370,13 @@ class nggVoting {
 						}
 					}
 				}else{ //no forced login, so just check the IP for a vote
-					$canVote = apply_filters('nggv_image_can_vote', $pid, $criteriaId, $options, null);
-					
+					//old premium users have this method defined with 'wrong' variable order. keep their installs working
+					if(class_exists('nggVotingPremium') && !defined('nggVotingPremium::VERSION')) {
+						$canVote = apply_filters('nggv_image_can_vote', $pid, $criteriaId, $options, null);
+					}else{
+						$canVote = apply_filters('nggv_image_can_vote', null, $pid, $criteriaId, $options);
+					}
+										
 					if($canVote === true) { //cookie allows it!
 						return true;
 					}else if($canVote) { //returned a string, so thats an error
@@ -405,7 +410,12 @@ class nggVoting {
 						}
 					}
 				}else{ //no forced login, so just check (a filter return value), then the IP for a vote
-					$canVote = apply_filters('nggv_image_can_vote', $pid, $criteriaId, $options, null);
+					//old premium users have this method defined with 'wrong' variable order. keep their installs working
+					if(class_exists('nggVotingPremium') && !defined('nggVotingPremium::VERSION')) {
+						$canVote = apply_filters('nggv_image_can_vote', $pid, $criteriaId, $options, null);
+					}else{
+						$canVote = apply_filters('nggv_image_can_vote', null, $pid, $criteriaId, $options);
+					}
 															
 					if($canVote === true) { //cookie allows it!
 						return true;
