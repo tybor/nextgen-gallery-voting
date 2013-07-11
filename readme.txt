@@ -10,9 +10,19 @@ Adds the ability for users to vote and rate your NextGEN Galleries and Images. S
 
 == Description ==
 
-This plugin adds the ability for users to vote on NextGEN Galleries and Images. A few basic options give the ability to limit who can vote on what.
+This plugin adds the ability for users to vote on NextGEN Galleries and Images.
+
+= Featured =
+
+* Individually enable or disabled per gallery or image
+* Choose if registered and logged in users can vote
+* Allow a user to vote as often as they want, or just once per gallery/image
+* Show or hide the results from your users
+* Choose from 3 ratings types: 1-5 Stars, 1-10 Drop Down, or Like/Dislike
 
 NGG Voting was inspired by a request from Troy Schlegel of Schlegel Photography.  Please read the FAQ for more info on how it works.
+
+If you want even more features and functionality, be sure to check out the [Premium add-on](http://codecanyon.net/item/nextgen-gallery-voting-premium/3307807?ref=shaunalberts).
 
 **Please read the FAQ**, as you are required to add a tag to gallery templates for certain functionality to work!
 
