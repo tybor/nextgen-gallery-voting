@@ -7,5 +7,13 @@ jQuery(document).ready(function() {
 				jQuery(this).parents('tr').next().toggle();
 				e.preventDefault();
 		});
+		
+		/*
+		jQuery('a.nggv-delete-vote').click(function(e) {
+				if(!confirm('Are you sure you want to delete this vote? This cannot be undone!')) {
+					e.preventDefault();
+				}
+		});
+		*/
 });
 

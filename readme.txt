@@ -3,11 +3,10 @@ Contributors: shauno
 Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
-Tested up to: 3.5.1
-Stable tag: 2.5.2
+Tested up to: 3.5.2
+Stable tag: 2.6
 
-Adds the ability for users to vote and rate your NextGEN Galleries and Images. Simple to understand options give you the ability to
-limit who can vote on what.
+Adds the ability for users to vote and rate your NextGEN Galleries and Images. Simple to understand options give you the ability to limit who can vote on what.
 
 == Description ==
 
@@ -34,20 +33,33 @@ Between line 38 and line 53 in `/nextgen-gallery/view/gallery.php` is the loop t
 That will output the vote form where you put it.  Personally I like to place it on a new line after the close `<a>` tag (new line created 45)
 Do not put inside the `<a>` tag that wraps the image in some of the templates, or the link will conflict with the voting process.
 
-= Ew, that looks hideous =
-This plugin intentionally adds very little styling to the voting forms. It does provded plenty of ids and classes allowing you to style it to fit in with your site.
+= Can I style it? =
+Absolutely. This plugin intentionally adds very little styling to the voting forms, but it does provide plenty of ids and classes allowing you to style it to fit in with your site.
 
 = Where are the results =
-Under the Gallery or Image options, the current average vote show along with how many votes have been cast.  Click on the number of votes cast to show more info on those votes.
+Under the Gallery or Image options, the current average vote show along with how many votes have been cast.  Click on the number of votes cast to view more info on those votes.
+You can also see more information on the voting results under the 'Top Voted' menu option.
 
 == Installation ==
 
 1. Unzip the plugin to your `wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
 1. Go to 'Manage Gallery' in NextGEN, and select a gallery to see the new options
-1. Remember to add the tag to the gallery template for image voting to work!
+1. Remember to add the tag to the gallery template for image voting to work (see the FAQ)!
+
+== Screenshots ==
+
+1. Main settings screen to control settings for any new Images or Galleries created
+2. The image settings for an actual image in the NextGEN Gallery 'Manage Gallery' screen
+3. Voting types available (more available in the Premium add-on!)
+4. Voting results for an image
+5. Top Voted screen showing you images and their votes
+6. Images with voting enabled
 
 == Changelog ==
+
+= 2.6 =
+* Added hooks and filters for the premium add-on to use.
 
 = 2.5.2 =
 * Fixed a bug that was stopping the voting showing with certain settings, for user's without Premium installed
@@ -174,6 +186,9 @@ Under the Gallery or Image options, the current average vote show along with how
 * Initial Release
 
 == Upgrade Notice ==
+
+= 2.6 =
+Minor update adding hooks and filters for next Premium add-on version to use.
 
 = 2.5.2 =
 This update fixes an issue stopping the vote form showing for certain setups.

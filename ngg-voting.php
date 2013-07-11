@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
 Description: This plugin allows you to add user voting and rating to NextGEN Galleries and Images
-Version: 2.5.2
+Version: 2.6
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -34,8 +34,8 @@ Backwards compatibility has been maintained with previous installs, which might 
 if(preg_match('#'.basename(__FILE__).'#', $_SERVER['PHP_SELF'])) {die('You are not allowed to call this page directly.');}
 
 class nggVoting {
-	private $dbVersion = 2.5;
-	private $slug;
+	private $dbVersion = 2.6;
+	public $slug;
 	public $types = array(
 		'2'=>array('name'=>'Star Rating', 'gallery'=>true, 'image'=>true,
 			'galleryCallback'=>array(
@@ -90,7 +90,8 @@ class nggVoting {
 		//use of dirname(__FILE__) as __DIR__ is only available from 5.3
 		$this->slug = basename(dirname(__FILE__));
 		
-		$dir = array_pop(explode('/', str_replace('\\', '/', dirname(__FILE__))));
+		$tmp = explode('/', str_replace('\\', '/', dirname(__FILE__)));
+		$dir = array_pop($tmp);
 		$this->pluginUrl = trailingslashit(WP_PLUGIN_URL.'/'.$dir);
 		$this->pluginPath = trailingslashit(str_replace('\\', '/', dirname(__FILE__)));
 		
@@ -141,6 +142,7 @@ class nggVoting {
 				user_results TINYINT NOT NULL DEFAULT 0,
 				voting_type INT NOT NULL DEFAULT 1,
 				criteria_id BIGINT NOT NULL DEFAULT 0,
+				show_in_popup TINYINT NOT NULL DEFAULT 0,
 				UNIQUE KEY id (id)
 			);';
 			dbDelta($sql);
@@ -905,6 +907,7 @@ class nggVoting {
 				echo '</td>';
 				echo '<td><strong>User Name</strong><br ><em>(if logged in)</em></td>';
 				echo '<td><strong>IP</strong></td>';
+				echo '<td></td>';
 				echo '</tr>';
 				echo '</thead>';
 				echo '<tbody>';
@@ -926,13 +929,19 @@ class nggVoting {
 					
 					echo '<td>'.(isset($user_info->data->display_name) && $user_info->data->display_name ? $user_info->data->display_name : $val->user_id).'</td>';
 					echo '<td>'.$val->ip.'</td>';
+					echo '<td>';
+					echo apply_filters('nggv_top_voted_row_actions', '', $this, $val);
+					echo '</td>';
 					echo '</tr>';
 					
 					$cnt++;
 				}
 				
+				echo do_action('nggv_popup_votes_list_bottom', $this, $options);
+				
 				echo '</tbody>';
 				echo '</table>';
+				
 				exit;
 				/*
 				echo "var nggv_votes_list = [];";
@@ -1025,7 +1034,7 @@ class nggVoting {
 					<h2>Default Options</h2>
 					<p>
 						Here you can set the default voting options for Galleries and Images.
-						Changing these options will not affect any existing Galleries or Images.
+						Changing these options will not affect any existing Galleries or Images. You can change the settings per image or gallery from the 'Manage Gallery' screen in NextGEN Gallery.
 					</p>
 					
 					<div id="poststuff">
@@ -1053,7 +1062,7 @@ class nggVoting {
 								</tr>
       	
 								<tr valign="top">
-									<th>Limit user to 1 vote:<br ><em>(IP or userid is used to stop multiple)</em></th>
+									<th>Limit user to 1 vote:<br ><em><small>IP or userid is used to stop multiple</small></em></th>
 									<td style="text-align:center;"><input type="checkbox" name="nggv[gallery][force_once]" <?php echo (get_option('nggv_gallery_force_once') ? 'checked="checked"' : ''); ?> /></td>
 									<td style="text-align:center;">
 										<input type="radio" name="nggv[image][force_once]" class="nggv-force-once" <?php echo (get_option('nggv_image_force_once') == 0 ? 'checked="checked"' : ''); ?> value="0" /> Unlimited votes<br />
@@ -1193,9 +1202,9 @@ class nggVoting {
 								
 								<tr>
 									<th>From Date</th>
-									<td><input type="text" id="nggv_date_from" name="nggv[date_from]" value="<?php echo $_GET['nggv']['date_from'] ?>" /></td>
+									<td><input type="text" id="nggv_date_from" name="nggv[date_from]" value="<?php echo (isset($_GET['nggv']['date_from']) ? $_GET['nggv']['date_from'] : '') ?>" /></td>
 									<th>To Date</th>
-									<td><input type="text" id="nggv_date_to" name="nggv[date_to]" value="<?php echo $_GET['nggv']['date_to'] ?>" /></td>
+									<td><input type="text" id="nggv_date_to" name="nggv[date_to]" value="<?php echo (isset($_GET['nggv']['date_to']) ? $_GET['nggv']['date_to'] : '') ?>" /></td>
 								</tr>
 								
 								<?php
@@ -1264,8 +1273,11 @@ class nggVoting {
 											<?php
 											if($val->criteria_id) {
 												if(class_exists('nggVotingPremium')) {
-													$c = nggVotingPremium::getCriteria(array('id'=>$val->criteria_id));
-													echo $c->name;
+													if($c = nggVotingPremium::getCriteria(array('id'=>$val->criteria_id))) {
+														echo $c->name;
+													}else{
+														echo 'Critera has been deleted';
+													}
 												}
 											}else{
 												echo 'Overall';
@@ -1501,7 +1513,7 @@ class nggVoting {
 						
 						//TODO 2.0 Consider APIing these queries, using new wpdb insert/update methods
 						if($this->getImageVotingOptions($pid, $criteriaId)) {
-							$wpdb->query('UPDATE '.$wpdb->prefix.'nggv_settings SET criteria_id = "'.$criteriaId.'", force_login = "'.$login.'", force_once = "'.$once.'", user_results = "'.$user_results.'", enable = "'.$enable.'", voting_type = "'.$voting_type.'" WHERE pid = "'.$wpdb->escape($pid).'"');
+							$wpdb->query('UPDATE '.$wpdb->prefix.'nggv_settings SET criteria_id = "'.$criteriaId.'", force_login = "'.$login.'", force_once = "'.$once.'", user_results = "'.$user_results.'", enable = "'.$enable.'", voting_type = "'.$voting_type.'" WHERE pid = "'.$wpdb->escape($pid).'" AND criteria_id = "'.$wpdb->escape($criteriaId).'"');
 						}else{
 							$wpdb->query('INSERT INTO '.$wpdb->prefix.'nggv_settings (id, pid, criteria_id, enable, force_login, force_once, user_results, voting_type) VALUES (null, "'.$wpdb->escape($pid).'", "'.$criteriaId.'", "'.$enable.'", "'.$login.'", "'.$once.'", "'.$user_results.'", "'.$voting_type.'")');
 						}
@@ -1707,6 +1719,8 @@ class nggVoting {
 					exit;
 				}
 			}
+			
+			do_action('nggv_wp_init_bottom', $this);
 		}
 		
 		function getImageVoteMarkup($options) {
@@ -1821,7 +1835,15 @@ class nggVoting {
 				*/
 					$out .= '<div class="nggv_container">';
 						$out .= (isset($form['scripts']) ?  $form['scripts'] : '');
-						$out .= '<input type="hidden" id="ngg-genric-err-msg" value="'.esc_attr(nggVoting::msg('There was a problem saving your vote, please try again in a few moments.')).'" />';
+						
+						//make sure the generic err is only every output once. hackity, but needs to be in for backwards compat with premium releases blah blah etc
+						global $_nggv_generic_err;
+						if(!$_nggv_generic_err) {
+							$out .= '<input type="hidden" id="ngg-genric-err-msg" value="'.esc_attr(nggVoting::msg('There was a problem saving your vote, please try again in a few moments.')).'" />';
+							$_nggv_generic_err = true;
+						}
+						
+						$votedOrErr = isset($this->initCatchVote[$pid][$criteriaId]['result']) ? $this->initCatchVote[$pid][$criteriaId]['result'] : '';
 
 						$out .= '<div class="nggv-error" style="'.(!$votedOrErr || $votedOrErr === true ? 'display:none;' : '').' border: 1px solid red;">';
 							$out .= $votedOrErr;
@@ -1831,6 +1853,8 @@ class nggVoting {
 							$out .= $form['form'];
 						$out .= '</div>';
 					$out .= '</div>';
+					
+					do_action('nggv_image_vote_bottom', $options);
 				/*
 				}
 				*/
