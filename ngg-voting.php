@@ -1708,14 +1708,15 @@ class nggVoting {
 				if($_GET['ajaxify']) { //catch the ajax vote
 					$form = $this->getImageVoteMarkup($options);
 
-					echo '<!-- NGGV START AJAX RESPONSE -->';
-					echo '<script>';
+					//echo '<!-- NGGV START AJAX RESPONSE -->';
+					//echo '<script>';
+					echo 'var nggv_ajax_ver = 2;'; //new in 2.6.1 to help js minification messing up ajac voting
 					echo 'var nggv_js = {};';
 					echo 'nggv_js.options = {};';
 					echo 'nggv_js.saved = '.($votedOrErr === true ? '1' : '0').';';
 					echo 'nggv_js.msg = "'.addslashes($votedOrErr).'";';
 					echo 'nggv_js.voting_form = "'.addslashes($form['form']).'";';
-					echo '<script><!-- NGGV END AJAX RESPONSE -->';
+					//echo '<script><!-- NGGV END AJAX RESPONSE -->';
 					exit;
 				}
 			}
