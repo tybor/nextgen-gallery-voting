@@ -6,19 +6,17 @@ Requires at least: 2.9.1
 Tested up to: 3.5.2
 Stable tag: 2.6
 
-Adds the ability for users to vote and rate your NextGEN v1.x Galleries and Images. Simple options give you the ability to limit who can vote on what.
+Adds the ability for users to vote and rate your NextGEN Images. Simple options give you the ability to limit who can vote on what.
 
 == Description ==
-**PLEASE NOTE: This plugin is intended for use with NextGEN Gallery version 1.x. It has not been tested on version 2**
-I will be testing and releasing a version compatibile with NGG v2 in due course.
-
-This plugin adds the ability for users to vote on NextGEN Galleries and Images.
+**PLEASE NOTE:** This plugin was written for NextGEN Gallery 1.x, but recently NGG have released version 2.x.
+I am working on bringing all the voting features up to date, but currently only the **Image** options work with NGG 2.x
 
 = Features =
 
-* Individually enable or disabled per gallery or image
+* Individually enable or disabled per image
 * Choose if registered and logged in users can vote
-* Allow a user to vote as often as they want, or just once per gallery/image
+* Allow a user to vote as often as they want, or just once per image
 * Show or hide the results from your users
 * Choose from 3 ratings types: 1-5 Stars, 1-10 Drop Down, or Like/Dislike
 
@@ -30,20 +28,29 @@ If you want even more features and functionality, be sure to check out the [Prem
 
 == Frequently Asked Questions ==
 
+= Important note about NextGEN Gallery version 2.x =
+This plugin was written for NGG 1.x. The recent release of NGG 2.x has lead to the gallery voting functions not being applicable anymore.
+I am working on an update to fix this in the future, but please be aware that they currently DO NOT WORK. You can ignore any reference to
+the gallery options in the FAQ below
+
 = In a nutshell, what is this? =
 This plugin adds options that can allow your users to vote on (more like rate) your Galleries and Images. There are options to limit which
 Gallery/Image to allow voting on, if the user needs to be registered and logged in, if they can vote more that once, and if they can see the
 current results.
 
-= How do I add the voting form? =
-For Galleries it's easy.  You just need to enable voting on the gallery, and the voting form will automatically be appended to the gallery.
-There is some basic styling, but the markup has got plenty of classes and ids that you should easily be able to hook into with your own stylesheets to make suit your site.
-
 = How do I make the voting form appear for images? =
-For images there's an extra step.  First you need to enable voing on the specific images you want.  Then you need to add a tag to the gallery template from NextGEN Gallery.  I'm going to use NextGEN version 1.9.6 to as the example, but it should be pretty much the same for all versions:
-Between line 38 and line 53 in `/nextgen-gallery/view/gallery.php` is the loop that shows each image in a specific gallery.  You need to add the following tag anywhere in that loop: `<?php echo nggv_imageVoteForm($image->pid); ?>`.
-That will output the vote form where you put it.  Personally I like to place it on a new line after the close `<a>` tag (new line created 45)
-Do not put inside the `<a>` tag that wraps the image in some of the templates, or the link will conflict with the voting process.
+You need to add a small tag, `<?php echo nggv_imageVoteForm($image->pid); ?>`, to the gallery output template to get the voting showing in 
+the galllery.
+
+For NGG 1.x, you can find the gallery templates in the `/plugins/nextgen-gallery/view/` directory. For the default shortcode, `[nggallery id=x]`, you
+add the tag to the `gallery.php` file. If you add the `template` attribute to your shortcode, you need to alter the appropriate template. eg:
+If you use the `[nggallery id=x template="caption"]`, you need to add the tag to the `gallery-caption.php` template.
+
+For NGG version 2.x, you need to add the tag to the `/nextgen-gallery/products/photocrati_nextgen/modules/nextgen_basic_gallery/templates/thumbnails/index.php`
+template. This will only work for galleries inserted WITHOUT selectiong a template from the gallery display options.
+
+Please be aware, the voting form needs to be placed inside the `foreach()` loop in those templates, as that loop is outputting each image.
+I find the best place to put the tag is AFTER the `<div class="ngg-gallery-thumbnail">` is CLOSED.
 
 = Can I style it? =
 Absolutely. This plugin intentionally adds very little styling to the voting forms, but it does provide plenty of ids and classes allowing you to style it to fit in with your site.
