@@ -6,9 +6,11 @@ Requires at least: 2.9.1
 Tested up to: 3.5.2
 Stable tag: 2.6
 
-Adds the ability for users to vote and rate your NextGEN Galleries and Images. Simple options give you the ability to limit who can vote on what.
+Adds the ability for users to vote and rate your NextGEN v1.x Galleries and Images. Simple options give you the ability to limit who can vote on what.
 
 == Description ==
+**PLEASE NOTE: This plugin is intended for use with NextGEN Gallery version 1.x. It has not been tested on version 2**
+I will be testing and releasing a version compatibile with NGG v2 in due course.
 
 This plugin adds the ability for users to vote on NextGEN Galleries and Images.
 
