@@ -22,7 +22,8 @@ class nggvGalleryVote {
 	}
 	
 	public static function getUrl() {
-		$url = strtok($_SERVER['REQUEST_URI'], '?');
+		$tmpUrl = $_SERVER['REDIRECT_URL'] ? $_SERVER['REDIRECT_URL'] : $_SERVER['REQUEST_URI'];
+		$url = strtok($tmpUrl, '?');
 		$get = $_GET;
 		if(isset($get['nggv_pid']) || isset($get['nggv_criteria_id'])) {
 			unset($get['nggv_pid']);
