@@ -3,8 +3,8 @@ Contributors: shauno
 Donate link: http://shauno.co.za/donate/
 Tags: nextgen-gallery, nextgen, gallery, voting, rating, ratings, nextgen-gallery-voting
 Requires at least: 2.9.1
-Tested up to: 3.5.2
-Stable tag: 2.6
+Tested up to: 3.6
+Stable tag: 2.6.1
 
 Adds the ability for users to vote and rate your NextGEN Images. Simple options give you the ability to limit who can vote on what.
 
@@ -76,6 +76,10 @@ You can also see more information on the voting results under the 'Top Voted' me
 6. Images with voting enabled
 
 == Changelog ==
+
+= 2.6.1 =
+* Changed the way voting URLs are generated for better compatibility with sub directory installs
+* Tweak new image catch to work with NextGEN Gallery 2
 
 = 2.6 =
 * Added hooks and filters for the premium add-on to use.
@@ -205,6 +209,9 @@ You can also see more information on the voting results under the 'Top Voted' me
 * Initial Release
 
 == Upgrade Notice ==
+
+= 2.6.1 =
+Minor updates to improve NextGEN Gallery version 2 compatibilty, and installs in a sub directory
 
 = 2.6 =
 Minor update adding hooks and filters for next Premium add-on version to use.

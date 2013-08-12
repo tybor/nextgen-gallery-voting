@@ -3,7 +3,7 @@
 Plugin Name: NextGEN Gallery Voting
 Plugin URI: http://shauno.co.za/wordpress/nextgen-gallery-voting/
 Description: This plugin allows you to add user voting and rating to NextGEN Galleries and Images
-Version: 2.6
+Version: 2.6.1
 Author: Shaun Alberts
 Author URI: http://shauno.co.za
 */
@@ -1532,22 +1532,42 @@ class nggVoting {
 		 * @return void
 		 */
 		function addNewImage($image) {
-			if($image['id']) {
-				$post = array();
-				$post['nggv_image'] = array();
-				$post['nggv_image'][$image['id']] = array();
-				
-				$criteria = $this->getImageCriteria();
-				foreach ((array)$criteria as $key=>$val) {
-					$post['nggv_image'][$image['id']][$val->id] = array();
-					$post['nggv_image'][$image['id']][$val->id]['enable'] = get_option('nggv_image_enable');
-					$post['nggv_image'][$image['id']][$val->id]['force_login'] = get_option('nggv_image_force_login');
-					$post['nggv_image'][$image['id']][$val->id]['force_once'] = get_option('nggv_image_force_once');
-					$post['nggv_image'][$image['id']][$val->id]['user_results'] = get_option('nggv_image_user_results');
-					$post['nggv_image'][$image['id']][$val->id]['voting_type'] = get_option('nggv_image_voting_type');
+			if(defined('NEXTGEN_GALLERY_PLUGIN_VERSION') && NEXTGEN_GALLERY_PLUGIN_VERSION >= 2) {
+				if($image->id() && $image->__get('galleryid')) {
+					$pid = $image->id();
+					$post = array();
+					$post['nggv_image'] = array();
+					$post['nggv_image'][$pid] = array();
+					
+					$criteria = $this->getImageCriteria();
+					foreach ((array)$criteria as $key=>$val) {
+						$post['nggv_image'][$pid][$val->id] = array();
+						$post['nggv_image'][$pid][$val->id]['enable'] = get_option('nggv_image_enable');
+						$post['nggv_image'][$pid][$val->id]['force_login'] = get_option('nggv_image_force_login');
+						$post['nggv_image'][$pid][$val->id]['force_once'] = get_option('nggv_image_force_once');
+						$post['nggv_image'][$pid][$val->id]['user_results'] = get_option('nggv_image_user_results');
+						$post['nggv_image'][$pid][$val->id]['voting_type'] = get_option('nggv_image_voting_type');
+					}
+					$this->onGalleryUpdate($image->__get('galleryid'), $post);
 				}
-				
-				$this->onGalleryUpdate($image['galleryID'], $post);
+			}else{
+				if($image['id']) {
+					$post = array();
+					$post['nggv_image'] = array();
+					$post['nggv_image'][$image['id']] = array();
+					
+					$criteria = $this->getImageCriteria();
+					foreach ((array)$criteria as $key=>$val) {
+						$post['nggv_image'][$image['id']][$val->id] = array();
+						$post['nggv_image'][$image['id']][$val->id]['enable'] = get_option('nggv_image_enable');
+						$post['nggv_image'][$image['id']][$val->id]['force_login'] = get_option('nggv_image_force_login');
+						$post['nggv_image'][$image['id']][$val->id]['force_once'] = get_option('nggv_image_force_once');
+						$post['nggv_image'][$image['id']][$val->id]['user_results'] = get_option('nggv_image_user_results');
+						$post['nggv_image'][$image['id']][$val->id]['voting_type'] = get_option('nggv_image_voting_type');
+					}
+					
+					$this->onGalleryUpdate($image['galleryID'], $post);
+				}
 			}
 		}
 		
